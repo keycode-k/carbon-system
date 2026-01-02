@@ -1,0 +1,3 @@
+com\example\provider\entity\User.class
+com\example\provider\controller\UserController.class
+com\example\provider\ProviderApplication.class
