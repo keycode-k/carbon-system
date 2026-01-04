@@ -2,6 +2,7 @@ package com.example.consumer.feign;
 
 import com.example.consumer.entity.User;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,4 +38,12 @@ public interface UserFeignClient {
      */
     @PostMapping("/api/user/logout")
     Map<String, Object> logout(@RequestParam("username") String username);
+    
+    /**
+     * 调用服务提供模块的验证token接口
+     * @param token 用户token
+     * @return 验证结果
+     */
+    @GetMapping("/api/user/verifyToken")
+    Map<String, Object> verifyToken(@RequestParam("token") String token);
 }

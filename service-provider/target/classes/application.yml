@@ -1,5 +1,10 @@
 server:
   port: 8081
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 spring:
   application:
@@ -8,3 +13,12 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.142.128:8848
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  redis:
+    host: 192.168.142.128
+    port: 6379
+    database: 0

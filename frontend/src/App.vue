@@ -7,6 +7,7 @@
       <button @click="activeTab = 'register'" :class="{ active: activeTab === 'register' }">注册</button>
       <button @click="activeTab = 'login'" :class="{ active: activeTab === 'login' }">登录</button>
       <button @click="activeTab = 'logout'" :class="{ active: activeTab === 'logout' }">登出</button>
+      <button @click="activeTab = 'redisTest'" :class="{ active: activeTab === 'redisTest' }">Redis测试</button>
     </div>
 
     <!-- 注册表单 -->
@@ -52,6 +53,18 @@
         <button type="submit" class="submit-btn">登出</button>
       </form>
     </div>
+    
+    <!-- Redis测试表单 -->
+    <div v-if="activeTab === 'redisTest'" class="form-container">
+      <h2>Redis Token验证</h2>
+      <form @submit.prevent="verifyToken">
+        <div class="form-item">
+          <label for="redis-token">Token</label>
+          <input type="text" id="redis-token" v-model="redisTestForm.token" placeholder="请输入登录获取的token" required>
+        </div>
+        <button type="submit" class="submit-btn">验证Token</button>
+      </form>
+    </div>
 
     <!-- 结果显示 -->
     <div v-if="result" class="result-container" :class="{ success: result.success, error: !result.success }">
@@ -80,6 +93,9 @@ export default {
       logoutForm: {
         username: ''
       },
+      redisTestForm: {
+        token: ''
+      },
       result: null
     }
   },
@@ -87,7 +103,7 @@ export default {
     // 注册功能
     async register() {
       try {
-        const response = await axios.post('/api/user/register', this.registerForm)
+        const response = await axios.post('/consumer/api/user/register', this.registerForm)
         this.result = response.data
       } catch (error) {
         this.result = {
@@ -100,7 +116,7 @@ export default {
     // 登录功能
     async login() {
       try {
-        const response = await axios.post('/api/user/login', this.loginForm)
+        const response = await axios.post('/consumer/api/user/login', this.loginForm)
         this.result = response.data
       } catch (error) {
         this.result = {
@@ -113,7 +129,7 @@ export default {
     // 登出功能
     async logout() {
       try {
-        const response = await axios.post('/api/user/logout', null, {
+        const response = await axios.post('/consumer/api/user/logout', null, {
           params: this.logoutForm
         })
         this.result = response.data
@@ -121,6 +137,21 @@ export default {
         this.result = {
           success: false,
           message: error.response?.data?.message || '登出失败，请稍后重试'
+        }
+      }
+    },
+    
+    // Redis Token验证功能
+    async verifyToken() {
+      try {
+        const response = await axios.get('/consumer/api/user/verifyToken', {
+          params: this.redisTestForm
+        })
+        this.result = response.data
+      } catch (error) {
+        this.result = {
+          success: false,
+          message: error.response?.data?.message || 'Token验证失败，请稍后重试'
         }
       }
     }

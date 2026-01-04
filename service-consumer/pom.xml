@@ -39,4 +39,15 @@
         </dependency>
     </dependencies>
 
+    <!-- 构建配置 -->
+    <build>
+        <plugins>
+            <!-- Spring Boot Maven插件，用于打包可执行jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

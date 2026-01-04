@@ -46,4 +46,14 @@ public class UserController {
     public Map<String, Object> logout(@RequestParam String username) {
         return userFeignClient.logout(username);
     }
+    
+    /**
+     * 验证token有效性接口
+     * @param token 用户token
+     * @return 验证结果
+     */
+    @GetMapping("/verifyToken")
+    public Map<String, Object> verifyToken(@RequestParam String token) {
+        return userFeignClient.verifyToken(token);
+    }
 }
