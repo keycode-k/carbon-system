@@ -55,6 +55,114 @@ public class UserController {
     }
 
     /**
+     * 获取用户信息接口
+     * @param username 用户名
+     * @return 用户信息
+     */
+    @GetMapping("/info")
+    public Map<String, Object> getUserInfo(@RequestParam String username) {
+        Map<String, Object> result = new HashMap<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        User user = userMapper.selectOne(queryWrapper);
+        
+        if (user != null) {
+            result.put("success", true);
+            user.setPassword(null); // 不返回密码
+            result.put("data", user);
+        } else {
+            result.put("success", false);
+            result.put("message", "用户不存在");
+        }
+        return result;
+    }
+
+    /**
+     * 更新用户信息接口
+     * @param user 用户信息
+     * @return 更新结果
+     */
+    @PostMapping("/update")
+    public Map<String, Object> updateUser(@RequestBody User user) {
+        Map<String, Object> result = new HashMap<>();
+        
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", user.getUsername());
+        User dbUser = userMapper.selectOne(queryWrapper);
+        
+        if (dbUser != null) {
+            dbUser.setNickname(user.getNickname());
+            dbUser.setPhone(user.getPhone());
+            dbUser.setEmail(user.getEmail());
+            dbUser.setBio(user.getBio());
+            userMapper.updateById(dbUser);
+            
+            result.put("success", true);
+            result.put("message", "更新成功");
+        } else {
+            result.put("success", false);
+            result.put("message", "用户不存在");
+        }
+        
+        return result;
+    }
+
+    /**
+     * 修改密码接口
+     * @param params 包含username, oldPassword, newPassword
+     * @return 修改结果
+     */
+    @PostMapping("/password")
+    public Map<String, Object> updatePassword(@RequestBody Map<String, String> params) {
+        Map<String, Object> result = new HashMap<>();
+        String username = params.get("username");
+        String oldPassword = params.get("oldPassword");
+        String newPassword = params.get("newPassword");
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        User dbUser = userMapper.selectOne(queryWrapper);
+
+        if (dbUser != null) {
+            if (dbUser.getPassword().equals(oldPassword)) {
+                dbUser.setPassword(newPassword);
+                userMapper.updateById(dbUser);
+                result.put("success", true);
+                result.put("message", "密码修改成功");
+            } else {
+                result.put("success", false);
+                result.put("message", "旧密码错误");
+            }
+        } else {
+            result.put("success", false);
+            result.put("message", "用户不存在");
+        }
+        return result;
+    }
+
+    /**
+     * 注销用户接口
+     * @param username 用户名
+     * @return 注销结果
+     */
+    @DeleteMapping("/delete")
+    public Map<String, Object> deleteUser(@RequestParam String username) {
+        Map<String, Object> result = new HashMap<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        int rows = userMapper.delete(queryWrapper);
+        
+        if (rows > 0) {
+            result.put("success", true);
+            result.put("message", "注销成功");
+        } else {
+            result.put("success", false);
+            result.put("message", "用户不存在或注销失败");
+        }
+        return result;
+    }
+
+    /**
      * 用户登录接口
      * @param user 用户信息
      * @return 登录结果，包含token
