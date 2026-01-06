@@ -5,8 +5,8 @@
       <el-col :span="8">
         <div class="stat-box bg-blue">
           <div class="title">总持有量 (tCO2e)</div>
-          <div class="num">150,000</div>
-          <div class="trend">较上月 +5% <el-icon><Top /></el-icon></div>
+          <div class="num">{{ totalAmount.toLocaleString() }}</div>
+          <div class="trend">较上月 +0% <el-icon><Top /></el-icon></div>
         </div>
       </el-col>
       <el-col :span="8">
@@ -43,26 +43,28 @@
       </div>
 
       <!-- 表格 -->
-      <el-table :data="tableData" border style="width: 100%; margin-top: 20px" stripe>
-        <el-table-column prop="id" label="资产ID" width="120" />
+      <el-table :data="tableData" v-loading="loading" border style="width: 100%; margin-top: 20px" stripe>
+        <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="projectName" label="项目名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="type" label="类型" width="100">
+        <el-table-column prop="projectType" label="类型" width="100">
           <template #default="scope">
-            <el-tag type="info">{{ scope.row.type }}</el-tag>
+            <el-tag size="small">{{ scope.row.projectType }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="amount" label="数量 (吨)" width="150" align="right" sortable />
-        <el-table-column prop="vintage" label="核证年份" width="100" align="center" />
-        <el-table-column prop="status" label="状态" width="100" align="center">
-          <template #default="scope">
-            <el-tag :type="statusMap[scope.row.status]">{{ statusText[scope.row.status] }}</el-tag>
-          </template>
+        <el-table-column prop="amount" label="持有量(t)" width="120" sortable />
+        <el-table-column prop="issueDate" label="签发日期" width="120" />
+        <el-table-column prop="status" label="状态" width="100">
+           <template #default="scope">
+              <el-tag v-if="scope.row.status === 0" type="success">持有中</el-tag>
+              <el-tag v-else-if="scope.row.status === 1" type="warning">交易中</el-tag>
+              <el-tag v-else type="info">已注销</el-tag>
+           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="scope">
             <el-button link type="primary" size="small">详情</el-button>
-            <el-button link type="success" size="small" v-if="scope.row.status === 'active'">挂牌</el-button>
-            <el-button link type="danger" size="small" v-if="scope.row.status === 'active'">注销</el-button>
+            <el-button link type="success" size="small" v-if="scope.row.status === 0">挂牌</el-button>
+            <el-button link type="danger" size="small" v-if="scope.row.status === 0">注销</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -76,30 +78,48 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { getCreditList } from '@/api/assets'
+import { ElMessage } from 'element-plus'
 
+const loading = ref(false)
+const tableData = ref([])
 const searchQuery = ref('')
 const statusFilter = ref('')
 
-const statusMap = {
-  active: 'success',
-  trading: 'warning',
-  retired: 'info'
+const totalAmount = computed(() => {
+    return tableData.value.reduce((sum, item) => sum + (item.amount || 0), 0)
+})
+
+const fetchData = async () => {
+    loading.value = true
+    const token = localStorage.getItem('token')
+    if (!token) {
+       // ElMessage.warning('请先登录')
+       loading.value = false
+       return
+    }
+    
+    try {
+        const res = await getCreditList(token)
+        if (res && res.length !== undefined) {
+             // If response is the list directly (due to request interceptor processing)
+             tableData.value = res
+        } else if (res && res.code === 200) {
+            tableData.value = res.data || []
+        } else if (Array.isArray(res)) {
+             tableData.value = res
+        }
+    } catch (e) {
+        console.error(e)
+    } finally {
+        loading.value = false
+    }
 }
 
-const statusText = {
-  active: '持有中',
-  trading: '交易中',
-  retired: '已注销'
-}
-
-// 模拟数据
-const tableData = [
-  { id: 'ASSET001', projectName: '四川省凉山州风电项目', type: 'CCER', amount: 50000, vintage: '2023', status: 'active' },
-  { id: 'ASSET002', projectName: '河北省塞罕坝林业碳汇', type: 'CCER', amount: 12000, vintage: '2022', status: 'trading' },
-  { id: 'ASSET003', projectName: '某生物质发电项目一期', type: 'VCS', amount: 8000, vintage: '2021', status: 'active' },
-  { id: 'ASSET004', projectName: '湖北省农村沼气项目', type: 'CCER', amount: 5000, vintage: '2023', status: 'retired' },
-]
+onMounted(() => {
+    fetchData()
+})
 </script>
 
 <style scoped>

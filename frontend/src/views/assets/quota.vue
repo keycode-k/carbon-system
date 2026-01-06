@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container">
+  <div class="app-container" v-loading="loading">
     <el-card shadow="never" class="compliance-card">
       <div class="compliance-header">
          <div>
@@ -11,21 +11,25 @@
             </el-select>
          </div>
          <div class="compliance-status">
-            履约状态：<el-tag type="success" effect="dark">履约完成</el-tag>
+            履约状态：
+            <el-tag v-if="quotaData.status === 1" type="success" effect="dark">履约完成</el-tag>
+            <el-tag v-else type="danger" effect="dark">未履约</el-tag>
          </div>
       </div>
       
       <el-row :gutter="40" style="margin-top: 30px;">
         <el-col :span="8" class="stat-col">
-          <div class="stat-value">1,000,000</div>
+          <div class="stat-value">{{ quotaData.totalQuota?.toLocaleString() || 0 }}</div>
           <div class="stat-label">发放总配额 (tCO2e)</div>
         </el-col>
         <el-col :span="8" class="stat-col">
-          <div class="stat-value">950,000</div>
+          <div class="stat-value">{{ quotaData.verifiedEmission?.toLocaleString() || 0 }}</div>
           <div class="stat-label">核查排放量 (tCO2e)</div>
         </el-col>
         <el-col :span="8" class="stat-col">
-          <div class="stat-value positive">+ 50,000</div>
+          <div class="stat-value" :class="{ 'positive': surplus >= 0, 'negative': surplus < 0 }">
+            {{ surplus > 0 ? '+' : '' }} {{ surplus.toLocaleString() }}
+          </div>
           <div class="stat-label">盈余配额 (tCO2e)</div>
         </el-col>
       </el-row>
@@ -33,9 +37,9 @@
       <div class="progress-section">
          <div class="progress-info">
            <span>配额使用率</span>
-           <span>95%</span>
+           <span>{{ usageRate }}%</span>
          </div>
-         <el-progress :text-inside="true" :stroke-width="20" :percentage="95" status="warning" />
+         <el-progress :text-inside="true" :stroke-width="20" :percentage="usageRate" status="warning" />
       </div>
     </el-card>
 
@@ -62,15 +66,62 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
+import { getQuota } from '@/api/assets'
+import { ElMessage } from 'element-plus'
 
 const currentYear = ref('2025')
+const quotaData = ref({
+  totalQuota: 0,
+  verifiedEmission: 0,
+  status: 0
+})
 
-const tableData = [
+const loading = ref(false)
+
+// 计算盈余配额
+const surplus = computed(() => {
+  if (!quotaData.value.totalQuota) return 0
+  return quotaData.value.totalQuota - quotaData.value.verifiedEmission
+})
+
+// 计算使用率
+const usageRate = computed(() => {
+  if (!quotaData.value.totalQuota || quotaData.value.totalQuota === 0) return 0
+  let rate = Math.round((quotaData.value.verifiedEmission / quotaData.value.totalQuota) * 100)
+  return rate > 100 ? 100 : rate
+})
+
+// 获取数据
+const fetchData = async () => {
+  loading.value = true
+  try {
+    const res = await getQuota(currentYear.value)
+    if (res) {
+      quotaData.value = res
+    } else {
+      quotaData.value = { totalQuota: 0, verifiedEmission: 0, status: 0 }
+      ElMessage.info(`${currentYear.value}年暂无配额数据`)
+    }
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(currentYear, () => {
+  fetchData()
+})
+
+onMounted(() => {
+  fetchData()
+})
+
+const tableData = ref([
   { date: '2025-01-01', type: '发放', amount: 1000000, balance: 1000000, remark: '2025年度预分配配额' },
-  { date: '2025-03-15', type: '卖出', amount: -20000, balance: 980000, remark: '大宗协议转让' },
-  { date: '2025-06-20', type: '买入', amount: 5000, balance: 985000, remark: '交易所竞价买入' },
-]
+  { date: '2025-06-15', type: '卖出', amount: -20000, balance: 980000, remark: '大宗协议转让' },
+])
 </script>
 
 <style scoped>
@@ -81,6 +132,7 @@ const tableData = [
 .stat-col:last-child { border-right: none; }
 .stat-value { font-size: 32px; font-weight: bold; color: #303133; }
 .stat-value.positive { color: #67C23A; }
+.stat-value.negative { color: #F56C6C; }
 .stat-label { font-size: 14px; color: #909399; margin-top: 5px; }
 .progress-section { margin-top: 30px; padding: 0 20px; }
 .progress-info { display: flex; justify-content: space-between; margin-bottom: 5px; color: #606266; font-size: 14px; }

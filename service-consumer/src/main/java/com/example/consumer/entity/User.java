@@ -5,6 +5,8 @@ package com.example.consumer.entity;
  */
 public class User {
 
+    private Long id;
+
     /**
      * 账号
      */
@@ -42,6 +44,14 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     // getter和setter方法

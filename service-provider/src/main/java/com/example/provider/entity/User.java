@@ -1,6 +1,7 @@
 package com.example.provider.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -44,9 +45,23 @@ public class User {
     private String nickname;
 
     /**
+     * 真实姓名 (新增兼容字段 - 数据库暂无此字段)
+     */
+    @TableField(exist = false)
+    private String realName;
+
+    /**
      * 手机号
      */
     private String phone;
+    
+    public String getRealName() {
+        return realName;
+    }
+    
+    public void setRealName(String realName) {
+        this.realName = realName;
+    }
 
     /**
      * 邮箱

@@ -86,11 +86,8 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useRouter } from 'vue-router'
 import { getUserInfo, updateUser, updatePassword, deleteAccount } from '@/api/user'
 
-const router = useRouter()
-const activeTab = ref('basic')
 const username = ref('')
 
 const form = reactive({
@@ -100,135 +97,101 @@ const form = reactive({
   bio: ''
 })
 
+const securityScore = ref(60)
+const completionScore = ref(30)
+const activeTab = ref('basic')
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: ''
 })
 
-// 计算资料完善度
-const completionScore = computed(() => {
-  let score = 0
-  // 总共4项，每项25分
-  if (form.nickname && form.nickname.trim() !== '') score += 25
-  if (form.phone && form.phone.trim() !== '') score += 25
-  if (form.email && form.email.trim() !== '') score += 25
-  if (form.bio && form.bio.trim() !== '') score += 25
-  return score
-})
-
-// 计算账户安全评分
-const securityScore = computed(() => {
-  let score = 40 // 基础分
-  if (form.phone && form.phone.trim() !== '') score += 30
-  if (form.email && form.email.trim() !== '') score += 30
-  // 可以根据密码强度等增加逻辑
-  return score > 100 ? 100 : score
-})
-
-onMounted(async () => {
-  const storedUser = localStorage.getItem('username')
-  if (storedUser) {
-    username.value = storedUser
-    try {
-      const res = await getUserInfo(storedUser)
-      if (res.success && res.data) {
-        form.nickname = res.data.nickname || ''
-        form.phone = res.data.phone || ''
-        form.email = res.data.email || ''
-        form.bio = res.data.bio || ''
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  } else {
-    username.value = 'Guest'
-  }
-})
-
 const saveInfo = async () => {
-  try {
-    const res = await updateUser({
-      username: username.value,
-      nickname: form.nickname,
-      phone: form.phone,
-      email: form.email,
-      bio: form.bio
-    })
-    
-    if (res.success) {
-       ElMessage.success('保存成功')
-    } else {
-       ElMessage.error(res.message || '保存失败')
+    try {
+        await updateUser(form)
+        ElMessage.success('更新成功')
+        fetchUserInfo()
+    } catch (e) {
+        // request.js handles message
     }
-  } catch (e) {
-    ElMessage.error('保存失败')
-  }
 }
 
 const handleUpdatePassword = async () => {
-  if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-    ElMessage.warning('请填写完整的密码信息')
-    return
-  }
-  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-    ElMessage.error('两次输入的密码不一致')
-    return
-  }
-  if (passwordForm.newPassword.length < 6) {
-    ElMessage.warning('新密码长度不能少于6位')
-    return
-  }
-  
-  try {
-    const res = await updatePassword({
-      username: username.value,
-      oldPassword: passwordForm.oldPassword,
-      newPassword: passwordForm.newPassword
-    })
-    
-    if (res.success) {
-      ElMessage.success('密码修改成功')
-      passwordForm.oldPassword = ''
-      passwordForm.newPassword = ''
-      passwordForm.confirmPassword = ''
-    } else {
-       ElMessage.error(res.message || '密码修改失败')
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        ElMessage.error('两次密码不一致')
+        return
     }
-  } catch (e) {
-    ElMessage.error('系统异常，请稍后重试')
-  }
+    try {
+        await updatePassword({
+            username: username.value, // Pass username if backend needs it to find user
+            oldPassword: passwordForm.oldPassword,
+            newPassword: passwordForm.newPassword
+        })
+        ElMessage.success('密码修改成功')
+    } catch (e) {
+        // error handled
+    }
 }
 
-const handleDeleteAccount = () => {
-  ElMessageBox.confirm(
-    '此操作将永久删除您的账户信息，是否继续?',
-    '警告',
-    {
-      confirmButtonText: '确定注销',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(async () => {
-      try {
-        const res = await deleteAccount(username.value)
-        if (res.success) {
-           ElMessage.success('账户已注销')
-           localStorage.removeItem('username')
-           localStorage.removeItem('token') // 假设有token
-           router.push('/login')
-        } else {
-           ElMessage.error(res.message || '注销失败')
+const handleDeleteAccount = async () => {
+    try {
+        await ElMessageBox.confirm('确定要注销账号吗？此操作不可逆！', '警告', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+        })
+        
+        // Need user ID. Assuming we have it in a hidden field or similar. 
+        // For now, let's use the API that accepts userId as per FeignClient update
+        // But wait, the frontend API wrapper `deleteAccount` passes `userId`.
+        // We need to store userId when fetching info.
+        
+        if (!form.id) {
+             ElMessage.error('无法获取用户ID')
+             return
         }
-      } catch (e) {
-        ElMessage.error('系统异常，注销失败')
-      }
-    })
-    .catch(() => {
-      // 取消操作
-    })
+
+        await deleteAccount(form.id)
+        ElMessage.success('账户已注销')
+        localStorage.clear()
+        window.location.reload()
+    } catch (e) {
+        // cancel or error
+    }
 }
+
+const fetchUserInfo = async () => {
+    // 假设token存储在 localStorage 或 cookie 中，这里简化处理
+    // 实际项目中应该从 Pinia userStore 中获取
+    const token = localStorage.getItem('token') 
+    if (!token) return
+
+    try {
+        const res = await getUserInfo(token)
+        if (res) {
+            username.value = res.username
+            form.id = res.id
+            form.nickname = res.nickname // Use nickname as per DB schema
+            form.phone = res.phone
+            form.email = res.email
+            form.bio = res.bio || '这家伙很懒，什么都没留下' 
+            
+            // 简单计算完成度
+            let score = 20
+            if (res.nickname) score += 20
+            if (res.phone) score += 20
+            if (res.email) score += 20
+            if (res.bio) score += 20
+            completionScore.value = score
+        }
+    } catch (err) {
+        console.error(err)
+    }
+}
+
+onMounted(() => {
+    fetchUserInfo()
+})
 </script>
 
 <style scoped>

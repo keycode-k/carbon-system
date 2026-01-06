@@ -10,9 +10,18 @@ const service = axios.create({
 service.interceptors.response.use(
   response => {
     const res = response.data
-    // If the backend returns a success flag, we can check it here
-    // But looking at the controller, it returns a Map. We will handle logic in component or here.
-    return res
+    // 兼容 { code, message, data } 格式和旧格式
+    if (res.code && res.code !== 200) {
+        ElMessage({
+            message: res.message || 'Error',
+            type: 'error',
+            duration: 5 * 1000
+        })
+        return Promise.reject(new Error(res.message || 'Error'))
+    } else {
+        // 如果是 Result 结构，返回 data，否则(如 map)直接返回
+        return res.data !== undefined ? res.data : res
+    }
   },
   error => {
     console.log('err' + error)

@@ -127,13 +127,13 @@ const handleLogin = async () => {
       loading.value = true
       try {
         const res = await login(loginForm)
-        if (res.success) {
+        if (res && res.token) {
           ElMessage.success('登录成功')
           localStorage.setItem('token', res.token) // 存储 token
           localStorage.setItem('username', loginForm.username)
           router.push('/')
         } else {
-          ElMessage.error(res.message || '登录失败，请检查用户名或密码')
+          ElMessage.error('登录失败，请检查用户名或密码')
         }
       } catch (error) {
         // 请求错误已经在 request.js 处理了部分，这里可以兜底
@@ -157,7 +157,7 @@ const handleRegister = async () => {
           password: registerForm.password
         })
         
-        if (res.success) {
+        if (res && (res.success || res.code === 200 || res === null)) { // Result<Object> from register might be null data if void
           ElMessage.success('注册成功，正在为您自动登录...')
           
           // 直接调用登录接口，不依懒 DOM 校验
@@ -167,7 +167,7 @@ const handleRegister = async () => {
               password: registerForm.password
             })
             
-            if (loginRes.success) {
+            if (loginRes && loginRes.token) {
               localStorage.setItem('token', loginRes.token)
               localStorage.setItem('username', registerForm.username)
               router.push('/')

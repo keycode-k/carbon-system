@@ -16,11 +16,11 @@ export function register(data) {
   })
 }
 
-export function getUserInfo(username) {
+export function getUserInfo(token) {
   return request({
     url: '/api/user/info',
     method: 'get',
-    params: { username }
+    params: { token }
   })
 }
 
@@ -40,10 +40,10 @@ export function updatePassword(data) {
   })
 }
 
-export function deleteAccount(username) {
+export function deleteAccount(userId) {
   return request({
     url: '/api/user/delete',
     method: 'delete',
-    params: { username }
+    params: { userId }
   })
 }

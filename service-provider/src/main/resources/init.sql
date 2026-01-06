@@ -12,3 +12,10 @@ CREATE TABLE IF NOT EXISTS `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
+-- 创建碳配额表 (Moved to service-assets)
+-- CREATE TABLE IF NOT EXISTS `carbon_quota` ...
+
+-- 创建碳信用(CCER)表 (Moved to service-assets)
+-- CREATE TABLE IF NOT EXISTS `carbon_credit` ...
+VALUES (1, '塞罕坝林业碳汇项目', '林业', 2000.00, 0, '2024-08-15');

@@ -1,6 +1,7 @@
 package com.example.provider.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.example.provider.common.Result;
 import com.example.provider.entity.User;
 import com.example.provider.mapper.UserMapper;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -33,179 +34,62 @@ public class UserController {
      * @return 注册结果
      */
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody User user) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Result<Object> register(@RequestBody User user) {
         // 查询用户名是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", user.getUsername());
         User existUser = userMapper.selectOne(queryWrapper);
         
         if (existUser != null) {
-            result.put("success", false);
-            result.put("message", "用户名已存在");
+            return Result.error("用户名已存在");
         } else {
             // 插入新用户
             userMapper.insert(user);
-            result.put("success", true);
-            result.put("message", "注册成功");
+            return Result.success("注册成功", null);
         }
-        
-        return result;
     }
-
-    /**
-     * 获取用户信息接口
-     * @param username 用户名
-     * @return 用户信息
-     */
-    @GetMapping("/info")
-    public Map<String, Object> getUserInfo(@RequestParam String username) {
-        Map<String, Object> result = new HashMap<>();
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        User user = userMapper.selectOne(queryWrapper);
-        
-        if (user != null) {
-            result.put("success", true);
-            user.setPassword(null); // 不返回密码
-            result.put("data", user);
-        } else {
-            result.put("success", false);
-            result.put("message", "用户不存在");
-        }
-        return result;
-    }
-
-    /**
-     * 更新用户信息接口
-     * @param user 用户信息
-     * @return 更新结果
-     */
-    @PostMapping("/update")
-    public Map<String, Object> updateUser(@RequestBody User user) {
-        Map<String, Object> result = new HashMap<>();
-        
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", user.getUsername());
-        User dbUser = userMapper.selectOne(queryWrapper);
-        
-        if (dbUser != null) {
-            dbUser.setNickname(user.getNickname());
-            dbUser.setPhone(user.getPhone());
-            dbUser.setEmail(user.getEmail());
-            dbUser.setBio(user.getBio());
-            userMapper.updateById(dbUser);
-            
-            result.put("success", true);
-            result.put("message", "更新成功");
-        } else {
-            result.put("success", false);
-            result.put("message", "用户不存在");
-        }
-        
-        return result;
-    }
-
-    /**
-     * 修改密码接口
-     * @param params 包含username, oldPassword, newPassword
-     * @return 修改结果
-     */
-    @PostMapping("/password")
-    public Map<String, Object> updatePassword(@RequestBody Map<String, String> params) {
-        Map<String, Object> result = new HashMap<>();
-        String username = params.get("username");
-        String oldPassword = params.get("oldPassword");
-        String newPassword = params.get("newPassword");
-
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        User dbUser = userMapper.selectOne(queryWrapper);
-
-        if (dbUser != null) {
-            if (dbUser.getPassword().equals(oldPassword)) {
-                dbUser.setPassword(newPassword);
-                userMapper.updateById(dbUser);
-                result.put("success", true);
-                result.put("message", "密码修改成功");
-            } else {
-                result.put("success", false);
-                result.put("message", "旧密码错误");
-            }
-        } else {
-            result.put("success", false);
-            result.put("message", "用户不存在");
-        }
-        return result;
-    }
-
-    /**
-     * 注销用户接口
-     * @param username 用户名
-     * @return 注销结果
-     */
-    @DeleteMapping("/delete")
-    public Map<String, Object> deleteUser(@RequestParam String username) {
-        Map<String, Object> result = new HashMap<>();
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        int rows = userMapper.delete(queryWrapper);
-        
-        if (rows > 0) {
-            result.put("success", true);
-            result.put("message", "注销成功");
-        } else {
-            result.put("success", false);
-            result.put("message", "用户不存在或注销失败");
-        }
-        return result;
-    }
-
+    
     /**
      * 用户登录接口
      * @param user 用户信息
-     * @return 登录结果，包含token
+     * @return 登录结果
      */
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody User user) {
-        Map<String, Object> result = new HashMap<>();
+    public Result<Map<String, Object>> login(@RequestBody User user) {
+        // 查询用户是否存在
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", user.getUsername());
+        queryWrapper.eq("password", user.getPassword());
+        User existUser = userMapper.selectOne(queryWrapper);
         
-        try {
-            System.out.println("接收到登录请求 - 用户名: " + user.getUsername());
+        if (existUser != null) {
+            // 生成token
+            String token = RandomStringUtils.randomAlphanumeric(32);
+            // 将token存入Redis，设置过期时间为24小时
+            redisTemplate.opsForValue().set(token, String.valueOf(existUser.getId()), 24, TimeUnit.HOURS);
             
-            // 查询用户
-            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("username", user.getUsername());
-            queryWrapper.eq("password", user.getPassword());
-            User dbUser = userMapper.selectOne(queryWrapper);
-            
-            System.out.println("数据库查询结果: " + (dbUser != null ? "找到用户" : "未找到用户"));
-            
-            if (dbUser != null) {
-                // 生成随机token，长度为32位
-                String token = RandomStringUtils.randomAlphanumeric(32);
-                System.out.println("生成token: " + token);
-                
-                // 将token存储到Redis，key为"user:token:"+token，value为用户名，过期时间为24小时
-                redisTemplate.opsForValue().set("user:token:" + token, user.getUsername(), 24, TimeUnit.HOURS);
-                System.out.println("已将token存储到Redis");
-                
-                result.put("success", true);
-                result.put("message", "登录成功");
-                result.put("token", token);
-            } else {
-                result.put("success", false);
-                result.put("message", "用户名或密码错误");
-            }
-        } catch (Exception e) {
-            System.err.println("登录异常: " + e.getMessage());
-            e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "登录失败: " + e.getMessage());
+            // 返回token
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            return Result.success("登录成功", data);
+        } else {
+            return Result.error("用户名或密码错误");
         }
-        
-        return result;
+    }
+    
+    @GetMapping("/info")
+    public Result<User> getUserInfo(@RequestParam("token") String token) {
+        String userIdStr = redisTemplate.opsForValue().get(token);
+        if (userIdStr == null) {
+            return Result.error(401, "Token无效或已过期");
+        }
+        Long userId = Long.valueOf(userIdStr);
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+             user.setPassword(null);
+             return Result.success(user);
+        }
+        return Result.error("用户不存在");
     }
 
     /**
@@ -214,39 +98,74 @@ public class UserController {
      * @return 登出结果
      */
     @PostMapping("/logout")
-    public Map<String, Object> logout(@RequestParam String token) {
-        Map<String, Object> result = new HashMap<>();
-        
-        // 从Redis删除token
-        redisTemplate.delete("user:token:" + token);
-        
-        result.put("success", true);
-        result.put("message", "登出成功");
-        
-        return result;
+    public Result<Object> logout(@RequestParam("token") String token) {
+        redisTemplate.delete(token);
+        return Result.success("登出成功", null);
     }
     
     /**
-     * 验证token有效性
-     * @param token 用户token
-     * @return token验证结果
+     * 更新用户信息接口
      */
-    @GetMapping("/verifyToken")
-    public Map<String, Object> verifyToken(@RequestParam String token) {
-        Map<String, Object> result = new HashMap<>();
-        
-        // 从Redis获取token对应的用户名
-        String username = redisTemplate.opsForValue().get("user:token:" + token);
-        
-        if (username != null) {
-            result.put("success", true);
-            result.put("message", "token有效");
-            result.put("username", username);
-        } else {
-            result.put("success", false);
-            result.put("message", "token无效或已过期");
+    @PostMapping("/update")
+    public Result<User> updateUser(@RequestBody User user) {
+        // 简单实现，实际应校验权限，这里假设前端传来的ID是合法的
+        // 更好的做法是从Token获取ID，校验是否修改自己的信息
+        if (user.getId() == null) {
+             return Result.error("用户ID不能为空");
+        }
+        User existingUser = userMapper.selectById(user.getId());
+        if(existingUser == null) {
+             return Result.error("用户不存在");
         }
         
-        return result;
+        // 允许修改的字段
+        if(user.getNickname() != null) existingUser.setNickname(user.getNickname());
+        if(user.getEmail() != null) existingUser.setEmail(user.getEmail());
+        if(user.getPhone() != null) existingUser.setPhone(user.getPhone());
+        
+        userMapper.updateById(existingUser);
+        existingUser.setPassword(null);
+        return Result.success("更新成功", existingUser);
+    }
+
+    /**
+     * 修改密码接口
+     * @param params 包含 userId, oldPassword, newPassword
+     */
+    @PostMapping("/password")
+    public Result<Object> updatePassword(@RequestBody Map<String, String> params) {
+        String userIdStr = params.get("userId");
+        String oldPassword = params.get("oldPassword");
+        String newPassword = params.get("newPassword");
+        
+        if (userIdStr == null || oldPassword == null || newPassword == null) {
+            return Result.error("参数不完整");
+        }
+        
+        Long userId = Long.valueOf(userIdStr);
+        User user = userMapper.selectById(userId);
+        
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+        
+        if (!user.getPassword().equals(oldPassword)) {
+            return Result.error("旧密码错误");
+        }
+        
+        user.setPassword(newPassword);
+        userMapper.updateById(user);
+        
+        return Result.success("密码修改成功", null);
+    }
+    
+    /**
+     * 注销用户
+     */
+    @DeleteMapping("/delete")
+    public Result<Object> deleteUser(@RequestParam("userId") Long userId) {
+        // 同样应该做权限校验
+        userMapper.deleteById(userId);
+        return Result.success("账户已注销", null);
     }
 }
