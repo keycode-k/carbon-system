@@ -12,7 +12,9 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 192.168.142.128:8848
+        server-addr: 132.226.64.96:8848
+        username: nacos
+        password: nacos
   http:
     encoding:
       charset: UTF-8

@@ -1,9 +1,22 @@
 package com.example.provider.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
+import java.time.LocalDateTime;
+
 /**
  * 用户实体类
  */
+@TableName("user")
 public class User {
+
+    /**
+     * 用户ID
+     */
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     /**
      * 账号
@@ -14,6 +27,16 @@ public class User {
      * 密码
      */
     private String password;
+    
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+    
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 
     // 构造方法
     public User() {
@@ -25,6 +48,14 @@ public class User {
     }
 
     // getter和setter方法
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getUsername() {
         return username;
     }
@@ -39,5 +70,21 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
     }
 }

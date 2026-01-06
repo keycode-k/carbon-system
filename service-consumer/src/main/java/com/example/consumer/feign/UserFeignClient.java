@@ -33,11 +33,11 @@ public interface UserFeignClient {
 
     /**
      * 调用服务提供模块的登出接口
-     * @param username 用户名
+     * @param token 用户token
      * @return 登出结果
      */
     @PostMapping("/api/user/logout")
-    Map<String, Object> logout(@RequestParam("username") String username);
+    Map<String, Object> logout(@RequestParam("token") String token);
     
     /**
      * 调用服务提供模块的验证token接口

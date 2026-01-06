@@ -39,12 +39,12 @@ public class UserController {
 
     /**
      * 用户登出接口
-     * @param username 用户名
+     * @param token 用户token
      * @return 登出结果
      */
     @PostMapping("/logout")
-    public Map<String, Object> logout(@RequestParam String username) {
-        return userFeignClient.logout(username);
+    public Map<String, Object> logout(@RequestParam String token) {
+        return userFeignClient.logout(token);
     }
     
     /**

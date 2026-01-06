@@ -47,8 +47,8 @@
       <h2>用户登出</h2>
       <form @submit.prevent="logout">
         <div class="form-item">
-          <label for="logout-username">用户名</label>
-          <input type="text" id="logout-username" v-model="logoutForm.username" placeholder="请输入用户名" required>
+          <label for="logout-token">Token</label>
+          <input type="text" id="logout-token" v-model="logoutForm.token" placeholder="请输入登录获得的token" required>
         </div>
         <button type="submit" class="submit-btn">登出</button>
       </form>
@@ -91,7 +91,7 @@ export default {
         password: ''
       },
       logoutForm: {
-        username: ''
+        token: ''
       },
       redisTestForm: {
         token: ''
@@ -103,12 +103,13 @@ export default {
     // 注册功能
     async register() {
       try {
-        const response = await axios.post('/consumer/api/user/register', this.registerForm)
+        const response = await axios.post('/api/user/register', this.registerForm)
         this.result = response.data
       } catch (error) {
+        console.error('注册错误详情:', error)
         this.result = {
           success: false,
-          message: error.response?.data?.message || '注册失败，请稍后重试'
+          message: error.response?.data?.message || error.message || `注册失败: ${error.response?.status || '网络错误'}`
         }
       }
     },
@@ -116,12 +117,21 @@ export default {
     // 登录功能
     async login() {
       try {
-        const response = await axios.post('/consumer/api/user/login', this.loginForm)
+        console.log('发送登录请求:', this.loginForm)
+        const response = await axios.post('/api/user/login', this.loginForm)
+        console.log('登录响应:', response.data)
         this.result = response.data
+        // 登录成功后自动填充token到登出和Redis测试表单
+        if (response.data.success && response.data.token) {
+          this.logoutForm.token = response.data.token
+          this.redisTestForm.token = response.data.token
+        }
       } catch (error) {
+        console.error('登录错误详情:', error)
+        console.error('错误响应:', error.response)
         this.result = {
           success: false,
-          message: error.response?.data?.message || '登录失败，请稍后重试'
+          message: error.response?.data?.message || error.message || `登录失败: ${error.response?.status || '网络错误'}`
         }
       }
     },
@@ -129,14 +139,17 @@ export default {
     // 登出功能
     async logout() {
       try {
-        const response = await axios.post('/consumer/api/user/logout', null, {
-          params: this.logoutForm
+        const response = await axios.post('/api/user/logout', null, {
+          params: { token: this.logoutForm.token }
         })
         this.result = response.data
       } catch (error) {
+        console.error('登出错误详情:', error)
+        console.error('错误响应数据:', error.response?.data)
+        console.error('错误状态码:', error.response?.status)
         this.result = {
           success: false,
-          message: error.response?.data?.message || '登出失败，请稍后重试'
+          message: error.response?.data?.message || error.response?.data || error.message || '登出失败，请稍后重试'
         }
       }
     },
@@ -144,7 +157,7 @@ export default {
     // Redis Token验证功能
     async verifyToken() {
       try {
-        const response = await axios.get('/consumer/api/user/verifyToken', {
+        const response = await axios.get('/api/user/verifyToken', {
           params: this.redisTestForm
         })
         this.result = response.data
