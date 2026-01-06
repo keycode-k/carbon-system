@@ -6,11 +6,11 @@
 
     <!-- 项目坐标 -->
     <groupId>com.example</groupId>
-    <artifactId>ms-login</artifactId>
+    <artifactId>carbon-system</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
-    <name>ms-login</name>
-    <description>微服务登录系统父项目</description>
+    <name>carbon-system</name>
+    <description>碳中和数字碳资产管理系统</description>
 
     <!-- Maven属性配置 -->
     <properties>
