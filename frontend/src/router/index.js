@@ -117,12 +117,27 @@ const routes = [
   {
     path: '/news',
     component: Layout,
+    redirect: '/news/index',
+    meta: { title: '碳资讯', icon: 'Bell' },
     children: [
       {
         path: 'index',
         name: 'News',
         component: () => import('@/views/news/index.vue'),
-        meta: { title: '碳资讯', icon: 'Bell' }
+        meta: { title: '碳资讯' }
+      }
+    ]
+  },
+  {
+    path: '/news/detail/:id',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '',
+        name: 'NewsDetail',
+        component: () => import('@/views/news/detail.vue'),
+        meta: { title: '新闻详情' }
       }
     ]
   },

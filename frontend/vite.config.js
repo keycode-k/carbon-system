@@ -25,6 +25,10 @@ export default defineConfig({
         target: 'http://localhost:8084',
         changeOrigin: true
       },
+      '/api/news': {
+        target: 'http://localhost:8086',
+        changeOrigin: true
+      },
       '/api': {
         target: 'http://localhost:8082',
         changeOrigin: true

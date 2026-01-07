@@ -70,6 +70,7 @@
         <module>service-assets</module>
         <module>service-trade</module>
         <module>service-development</module>
+        <module>service-news</module>
     </modules>
 
     <!-- 构建配置 -->

@@ -16,10 +16,11 @@
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../../../Maven/apache-maven-3.9.9/repository/org/projectlombok/lombok/1.18.34/lombok-1.18.34.jar" />
         </processorPath>
-        <module name="service-consumer" />
         <module name="service-development" />
-        <module name="service-provider" />
         <module name="service-assets" />
+        <module name="service-consumer" />
+        <module name="service-news" />
+        <module name="service-provider" />
         <module name="service-trade" />
         <module name="carbon-common" />
       </profile>
