@@ -1,7 +1,7 @@
 package com.example.assets.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.example.assets.common.Result;
+import com.example.common.model.Result;
 import com.example.assets.entity.CarbonCredit;
 import com.example.assets.mapper.CarbonCreditMapper;
 import org.springframework.beans.factory.annotation.Autowired;

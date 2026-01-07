@@ -63,10 +63,13 @@
 
     <!-- 模块管理 -->
     <modules>
+        <module>carbon-common</module>
         <module>service-provider</module>
         <module>service-consumer</module>
         <module>frontend</module>
         <module>service-assets</module>
+        <module>service-trade</module>
+        <module>service-development</module>
     </modules>
 
     <!-- 构建配置 -->

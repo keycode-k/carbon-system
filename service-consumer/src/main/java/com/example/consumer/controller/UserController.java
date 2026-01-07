@@ -1,6 +1,6 @@
 package com.example.consumer.controller;
 
-import com.example.consumer.common.Result;
+import com.example.common.model.Result;
 import com.example.consumer.entity.User;
 import com.example.consumer.feign.UserFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;

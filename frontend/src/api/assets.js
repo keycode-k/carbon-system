@@ -1,24 +1,33 @@
 import request from '@/utils/request'
 
-export function getQuota(year) {
+export function getQuota(userId, year) {
   return request({
     url: '/api/assets/quota/get',
     method: 'get',
-    params: { year }
+    params: { userId, year }
   })
 }
 
-export function listQuotas() {
+export function listQuotas(userId) {
   return request({
     url: '/api/assets/quota/list',
-    method: 'get'
+    method: 'get',
+    params: { userId }
   })
 }
 
-export function getCreditList(token) {
+export function getCreditList(userId) {
   return request({
     url: '/api/assets/credit/list',
     method: 'get',
-    params: { token }
+    params: { userId }
+  })
+}
+
+export function getQuotaDetails(quotaId) {
+  return request({
+    url: '/api/assets/quota/detail/list',
+    method: 'get',
+    params: { quotaId }
   })
 }

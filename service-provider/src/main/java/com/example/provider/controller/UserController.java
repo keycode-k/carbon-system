@@ -1,7 +1,7 @@
 package com.example.provider.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.example.provider.common.Result;
+import com.example.common.model.Result;
 import com.example.provider.entity.User;
 import com.example.provider.mapper.UserMapper;
 import org.apache.commons.lang3.RandomStringUtils;

@@ -1,4 +1,4 @@
--- 创建碳配额表
+﻿-- 创建碳配额表
 CREATE TABLE IF NOT EXISTS `carbon_quota` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `user_id` BIGINT(20) NOT NULL COMMENT '所属用户ID',
@@ -24,13 +24,31 @@ CREATE TABLE IF NOT EXISTS `carbon_credit` (
   `amount` DECIMAL(20, 2) DEFAULT 0.00 COMMENT '持有数量(tCO2e)',
   `status` TINYINT(1) DEFAULT 0 COMMENT '状态 0-持有中 1-已冻结 2-已注销/使用',
   `issue_date` DATE DEFAULT NULL COMMENT '签发日期',
+  `expiry_date` DATE DEFAULT NULL COMMENT '有效期',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='碳信用表';
 
 -- 插入一些CCER测试数据
-INSERT INTO `carbon_credit` (`user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`)
-VALUES (1, '河北张家口风电项目', '风电', 5000.00, 0, '2024-05-20');
-INSERT INTO `carbon_credit` (`user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`)
-VALUES (1, '四川广元造林碳汇项目', '林业', 2000.00, 2, '2023-08-15');
+INSERT INTO `carbon_credit` (`user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
+VALUES (1, '河北张家口风电项目', '风电', 5000.00, 0, '2024-05-20', '2029-05-20');
+INSERT INTO `carbon_credit` (`user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
+VALUES (1, '四川广元造林碳汇项目', '林业', 2000.00, 2, '2023-08-15', '2028-08-15');
+
+-- 创建配额明细表
+CREATE TABLE IF NOT EXISTS `carbon_quota_detail` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `quota_id` BIGINT(20) NOT NULL COMMENT '关联配额ID',
+  `type` VARCHAR(50) COMMENT '变动类型',
+  `amount` DECIMAL(20, 2) COMMENT '变动数量',
+  `balance` DECIMAL(20, 2) COMMENT '变动后结余',
+  `remark` VARCHAR(255) COMMENT '备注',
+  `change_date` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '变动时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配额明细表';
+
+-- 插入测试明细
+INSERT INTO `carbon_quota_detail` (`quota_id`, `type`, `amount`, `balance`, `remark`, `change_date`)
+VALUES 
+((SELECT id FROM carbon_quota WHERE user_id=1 AND year=2025 LIMIT 1), '初始发放', 1000000.00, 1000000.00, '2025年度配额预发放', NOW());

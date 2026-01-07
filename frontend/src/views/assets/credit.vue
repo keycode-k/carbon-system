@@ -62,7 +62,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="scope">
-            <el-button link type="primary" size="small">详情</el-button>
+            <el-button link type="primary" size="small" @click="handleDetails(scope.row)">详情</el-button>
             <el-button link type="success" size="small" v-if="scope.row.status === 0">挂牌</el-button>
             <el-button link type="danger" size="small" v-if="scope.row.status === 0">注销</el-button>
           </template>
@@ -73,6 +73,21 @@
       <div class="pagination-container">
         <el-pagination background layout="total, prev, pager, next, jumper" :total="100" />
       </div>
+
+      <el-dialog v-model="detailsVisible" title="资产详情" width="500px">
+        <el-descriptions :column="1" border>
+            <el-descriptions-item label="项目名称">{{ currentCredit.projectName }}</el-descriptions-item>
+            <el-descriptions-item label="项目类型">{{ currentCredit.projectType }}</el-descriptions-item>
+            <el-descriptions-item label="持有量">{{ currentCredit.amount }} tCO2e</el-descriptions-item>
+            <el-descriptions-item label="签发日期">{{ currentCredit.issueDate }}</el-descriptions-item>
+            <el-descriptions-item label="有效期至">{{ currentCredit.expiryDate || '长期有效' }}</el-descriptions-item>
+            <el-descriptions-item label="状态">
+                <el-tag v-if="currentCredit.status === 0" type="success">持有中</el-tag>
+                <el-tag v-else-if="currentCredit.status === 1" type="warning">交易中</el-tag>
+                <el-tag v-else type="info">已注销</el-tag>
+            </el-descriptions-item>
+        </el-descriptions>
+      </el-dialog>
     </el-card>
   </div>
 </template>
@@ -86,6 +101,14 @@ const loading = ref(false)
 const tableData = ref([])
 const searchQuery = ref('')
 const statusFilter = ref('')
+
+const detailsVisible = ref(false)
+const currentCredit = ref({})
+
+const handleDetails = (row) => {
+  currentCredit.value = row
+  detailsVisible.value = true
+}
 
 const totalAmount = computed(() => {
     return tableData.value.reduce((sum, item) => sum + (item.amount || 0), 0)
@@ -101,7 +124,9 @@ const fetchData = async () => {
     }
     
     try {
-        const res = await getCreditList(token)
+        // 使用userId而不是token
+        const userId = 1 // TODO: 从登录信息中获取
+        const res = await getCreditList(userId)
         if (res && res.length !== undefined) {
              // If response is the list directly (due to request interceptor processing)
              tableData.value = res

@@ -14,6 +14,13 @@
     <description>服务提供模块</description>
 
     <dependencies>
+        <!-- 公共模块 -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>carbon-common</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

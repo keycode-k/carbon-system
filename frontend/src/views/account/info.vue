@@ -55,6 +55,24 @@
                 </el-form-item>
               </el-form>
             </el-tab-pane>
+            <el-tab-pane label="资产概览" name="assets">
+               <el-card shadow="never">
+                 <el-row :gutter="40">
+                   <el-col :span="12">
+                     <div class="asset-summary-box">
+                        <h3>持有配额 (Quota)</h3>
+                        <div class="num">{{ totalQuota.toLocaleString() }} <small>tCO2e</small></div>
+                     </div>
+                   </el-col>
+                   <el-col :span="12">
+                     <div class="asset-summary-box">
+                        <h3>持有信用 (CCER)</h3>
+                        <div class="num">{{ totalCredit.toLocaleString() }} <small>tCO2e</small></div>
+                     </div>
+                   </el-col>
+                 </el-row>
+               </el-card>
+            </el-tab-pane>
             <el-tab-pane label="安全设置" name="security">
               <el-collapse accordion>
                 <el-collapse-item title="修改密码" name="1">
@@ -87,6 +105,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserInfo, updateUser, updatePassword, deleteAccount } from '@/api/user'
+import { listQuotas, getCreditList } from '@/api/assets'
 
 const username = ref('')
 
@@ -97,9 +116,12 @@ const form = reactive({
   bio: ''
 })
 
-const securityScore = ref(60)
-const completionScore = ref(30)
+const totalQuota = ref(0)
+const totalCredit = ref(0)
+
 const activeTab = ref('basic')
+const securityScore = ref(65)
+const completionScore = ref(30)
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
@@ -189,8 +211,31 @@ const fetchUserInfo = async () => {
     }
 }
 
+const fetchAssets = async () => {
+    try {
+        const quotas = await listQuotas()
+        let qTotal = 0
+        if (quotas && Array.isArray(quotas)) {
+            qTotal = quotas.reduce((sum, q) => sum + (q.totalQuota || 0), 0)
+        }
+        totalQuota.value = qTotal
+
+        const credits = await getCreditList()
+        let cTotal = 0
+        // Handle result wrapper if any
+        const creditArray = (credits && Array.isArray(credits)) ? credits : (credits?.data || [])
+        if (Array.isArray(creditArray)) {
+            cTotal = creditArray.reduce((sum, c) => sum + (c.amount || 0), 0)
+        }
+        totalCredit.value = cTotal
+    } catch (e) {
+        console.error("Failed to fetch assets", e)
+    }
+}
+
 onMounted(() => {
     fetchUserInfo()
+    fetchAssets()
 })
 </script>
 
@@ -204,3 +249,19 @@ onMounted(() => {
 .progress-item span { display: block; margin-bottom: 5px; color: #606266; font-size: 14px; }
 .danger-zone { padding: 10px; color: #F56C6C; }
 </style>
+
+<style scoped>
+.user-header { text-align: center; padding: 20px 0; }
+.user-name { margin: 10px 0 5px; font-size: 20px; }
+.user-role { color: #909399; margin-bottom: 10px; }
+.user-progress { padding: 0 20px; }
+.progress-item { margin-bottom: 15px; }
+.progress-item span { font-size: 14px; color: #606266; display: block; margin-bottom: 5px; }
+.card-header { font-weight: bold; }
+.asset-summary-box { text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px; }
+.asset-summary-box h3 { margin: 0 0 10px; color: #606266; }
+.asset-summary-box .num { font-size: 32px; font-weight: bold; color: #409EFF; }
+.asset-summary-box .num small { font-size: 14px; color: #909399; font-weight: normal; }
+.danger-zone { padding: 20px; background: #fef0f0; border-radius: 4px; color: #f56c6c; }
+</style>
+

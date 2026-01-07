@@ -67,7 +67,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { getQuota } from '@/api/assets'
+import { getQuota, getQuotaDetails } from '@/api/assets'
 import { ElMessage } from 'element-plus'
 
 const currentYear = ref('2025')
@@ -78,6 +78,7 @@ const quotaData = ref({
 })
 
 const loading = ref(false)
+const tableData = ref([])
 
 // 计算盈余配额
 const surplus = computed(() => {
@@ -96,11 +97,22 @@ const usageRate = computed(() => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await getQuota(currentYear.value)
-    if (res) {
+    // 同时传userId和year
+    const userId = 1 // TODO: 从登录信息中获取
+    const res = await getQuota(userId, currentYear.value)
+    if (res && res.id) {
       quotaData.value = res
+      // 获取明细
+      const details = await getQuotaDetails(res.id)
+      if (details) {
+         tableData.value = details.map(item => ({
+             ...item,
+             date: item.changeDate
+         }))
+      }
     } else {
       quotaData.value = { totalQuota: 0, verifiedEmission: 0, status: 0 }
+      tableData.value = []
       ElMessage.info(`${currentYear.value}年暂无配额数据`)
     }
   } catch (error) {
@@ -117,11 +129,6 @@ watch(currentYear, () => {
 onMounted(() => {
   fetchData()
 })
-
-const tableData = ref([
-  { date: '2025-01-01', type: '发放', amount: 1000000, balance: 1000000, remark: '2025年度预分配配额' },
-  { date: '2025-06-15', type: '卖出', amount: -20000, balance: 980000, remark: '大宗协议转让' },
-])
 </script>
 
 <style scoped>

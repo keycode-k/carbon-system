@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 const service = axios.create({
   baseURL: '', // Using proxy in vite.config.js
-  timeout: 5000
+  timeout: 60000
 })
 
 // Response interceptor

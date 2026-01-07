@@ -28,6 +28,8 @@ public class CarbonCredit {
 
     private LocalDate issueDate;
 
+    private LocalDate expiryDate;
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
@@ -88,6 +90,14 @@ public class CarbonCredit {
 
     public void setIssueDate(LocalDate issueDate) {
         this.issueDate = issueDate;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
     }
 
     public LocalDateTime getCreateTime() {
