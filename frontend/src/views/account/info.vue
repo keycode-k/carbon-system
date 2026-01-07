@@ -106,7 +106,9 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserInfo, updateUser, updatePassword, deleteAccount } from '@/api/user'
 import { listQuotas, getCreditList } from '@/api/assets'
+import { useUserStore } from '@/store/user'
 
+const userStore = useUserStore()
 const username = ref('')
 
 const form = reactive({
@@ -213,14 +215,17 @@ const fetchUserInfo = async () => {
 
 const fetchAssets = async () => {
     try {
-        const quotas = await listQuotas()
+        // 优先从 store 获取 userId，其次从 form，最后使用默认值
+        const userId = userStore.userId || form.id || 1
+        
+        const quotas = await listQuotas(userId)
         let qTotal = 0
         if (quotas && Array.isArray(quotas)) {
             qTotal = quotas.reduce((sum, q) => sum + (q.totalQuota || 0), 0)
         }
         totalQuota.value = qTotal
 
-        const credits = await getCreditList()
+        const credits = await getCreditList(userId)
         let cTotal = 0
         // Handle result wrapper if any
         const creditArray = (credits && Array.isArray(credits)) ? credits : (credits?.data || [])
@@ -233,9 +238,9 @@ const fetchAssets = async () => {
     }
 }
 
-onMounted(() => {
-    fetchUserInfo()
-    fetchAssets()
+onMounted(async () => {
+    await fetchUserInfo()
+    await fetchAssets()
 })
 </script>
 

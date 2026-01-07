@@ -14,8 +14,8 @@ spring:
   
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://132.226.64.96:3306/test1?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: 123456
+    url: jdbc:mysql://45.153.245.177:3306/carbondate?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: xueerze
     password: 123456
     hikari:
       maximum-pool-size: 10

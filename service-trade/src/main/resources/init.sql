@@ -9,9 +9,15 @@ CREATE TABLE IF NOT EXISTS `trade_order` (
   `quantity` DECIMAL(20, 2) NOT NULL COMMENT '数量',
   `traded_quantity` DECIMAL(20, 2) DEFAULT 0.00 COMMENT '已成交数量',
   `status` VARCHAR(20) DEFAULT 'OPEN' COMMENT '状态: OPEN, CLOSED, CANCELLED',
+  `matched_order_id` BIGINT(20) DEFAULT NULL COMMENT '匹配的订单ID',
+  `match_time` DATETIME DEFAULT NULL COMMENT '成交时间',
+  `final_price` DECIMAL(20, 2) DEFAULT NULL COMMENT '最终成交价',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_item_type` (`item_type`),
+  KEY `idx_direction` (`direction`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='碳交易订单表';
 
 -- 插入一条测试挂单

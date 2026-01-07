@@ -173,9 +173,11 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getMarketQuotes, publishQuote, makeQuote, acceptQuote } from '@/api/trade'
+import { useUserStore } from '@/store/user'
 
-// 当前用户ID（实际应从store获取）
-const currentUserId = ref(1)
+// 使用userStore获取当前用户ID
+const userStore = useUserStore()
+const currentUserId = ref(userStore.userId || 1)
 
 // 查询条件
 const queryForm = ref({
@@ -195,7 +197,7 @@ const loading = ref(false)
 const publishDialogVisible = ref(false)
 const publishLoading = ref(false)
 const publishForm = ref({
-  userId: 1,
+  userId: userStore.userId || 1,
   type: 'BUY',
   assetType: 'QUOTA',
   quantity: 100,

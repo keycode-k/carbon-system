@@ -68,8 +68,10 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login, register } from '@/api/user'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const isLogin = ref(true) // 切换登录/注册
 const rememberMe = ref(false)
@@ -129,8 +131,15 @@ const handleLogin = async () => {
         const res = await login(loginForm)
         if (res && res.token) {
           ElMessage.success('登录成功')
-          localStorage.setItem('token', res.token) // 存储 token
-          localStorage.setItem('username', loginForm.username)
+          
+          // 设置用户信息到store
+          userStore.setUserInfo({
+            id: res.userId || res.id || 1,
+            username: res.username || loginForm.username,
+            token: res.token,
+            roles: res.roles || []
+          })
+          
           router.push('/')
         } else {
           ElMessage.error('登录失败，请检查用户名或密码')
@@ -168,8 +177,14 @@ const handleRegister = async () => {
             })
             
             if (loginRes && loginRes.token) {
-              localStorage.setItem('token', loginRes.token)
-              localStorage.setItem('username', registerForm.username)
+              // 设置用户信息到store
+              userStore.setUserInfo({
+                id: loginRes.userId || loginRes.id || 1,
+                username: loginRes.username || registerForm.username,
+                token: loginRes.token,
+                roles: loginRes.roles || []
+              })
+              
               router.push('/')
             } else {
               ElMessage.warning('自动登录失败，请手动登录')

@@ -54,34 +54,46 @@ public class DashboardController {
                 summary.put("certifiedCompanies", 0L);
             }
 
-            // 3. 获取碳资产总量 (碳配额 + CCER)
-            Long totalQuota = 0L;
-            Long totalCredit = 0L;
+            // 3. 获取碳资产总量 (碳配额 + CCER) - 使用真实数据
+            java.math.BigDecimal totalQuota = java.math.BigDecimal.ZERO;
+            java.math.BigDecimal totalCredit = java.math.BigDecimal.ZERO;
+            
             try {
-                // 调用碳配额统计 (这里简化处理，实际应该有专门的统计接口)
-                totalQuota = 1000000L; // 模拟数据
+                Result<java.math.BigDecimal> quotaResult = carbonQuotaFeignClient.getTotalQuota(userId);
+                if (quotaResult != null && quotaResult.getData() != null) {
+                    totalQuota = quotaResult.getData();
+                }
             } catch (Exception e) {
-                totalQuota = 0L;
+                e.printStackTrace();
             }
+            
             try {
-                // 调用CCER统计
-                totalCredit = 50000L; // 模拟数据
+                Result<java.math.BigDecimal> creditResult = carbonCreditFeignClient.getTotalCredit(userId);
+                if (creditResult != null && creditResult.getData() != null) {
+                    totalCredit = creditResult.getData();
+                }
             } catch (Exception e) {
-                totalCredit = 0L;
+                e.printStackTrace();
             }
+            
             summary.put("totalQuota", totalQuota);
             summary.put("totalCredit", totalCredit);
-            summary.put("totalAssets", totalQuota + totalCredit);
+            summary.put("totalAssets", totalQuota.add(totalCredit));
 
-            // 4. 获取交易总额 (今日或累计)
+            // 4. 获取交易总额 (今日) - 使用真实数据
             try {
-                // 调用交易统计接口 (这里简化，实际应该有专门的统计接口)
-                summary.put("todayTradeAmount", 2300000.00);
-                summary.put("totalTradeAmount", 58600000.00);
+                Result<java.math.BigDecimal> todayResult = tradeOrderFeignClient.getTodayTradeAmount(userId);
+                if (todayResult != null && todayResult.getData() != null) {
+                    summary.put("todayTradeAmount", todayResult.getData());
+                } else {
+                    summary.put("todayTradeAmount", java.math.BigDecimal.ZERO);
+                }
             } catch (Exception e) {
-                summary.put("todayTradeAmount", 0.00);
-                summary.put("totalTradeAmount", 0.00);
+                e.printStackTrace();
+                summary.put("todayTradeAmount", java.math.BigDecimal.ZERO);
             }
+            
+            summary.put("totalTradeAmount", 0.00); // 累计交易额暂时保留，后续可扩展
 
             // 5. 获取待办事项数 (待审批企业数)
             try {
@@ -110,32 +122,49 @@ public class DashboardController {
         try {
             Map<String, Object> userStats = new HashMap<>();
 
-            // 用户持有的碳配额
+            // 用户持有的碳配额 - 使用真实数据
             try {
-                // 实际应该调用 carbonQuotaFeignClient 获取用户所有年份配额总和
-                userStats.put("userQuota", 100000L);
+                Result<java.math.BigDecimal> quotaResult = carbonQuotaFeignClient.getTotalQuota(userId);
+                if (quotaResult != null && quotaResult.getData() != null) {
+                    userStats.put("userQuota", quotaResult.getData());
+                } else {
+                    userStats.put("userQuota", java.math.BigDecimal.ZERO);
+                }
             } catch (Exception e) {
-                userStats.put("userQuota", 0L);
+                e.printStackTrace();
+                userStats.put("userQuota", java.math.BigDecimal.ZERO);
             }
 
-            // 用户持有的CCER
+            // 用户持有的CCER - 使用真实数据
             try {
-                // 实际应该调用 carbonCreditFeignClient 获取用户CCER总和
-                userStats.put("userCredit", 5000L);
+                Result<java.math.BigDecimal> creditResult = carbonCreditFeignClient.getTotalCredit(userId);
+                if (creditResult != null && creditResult.getData() != null) {
+                    userStats.put("userCredit", creditResult.getData());
+                } else {
+                    userStats.put("userCredit", java.math.BigDecimal.ZERO);
+                }
             } catch (Exception e) {
-                userStats.put("userCredit", 0L);
+                e.printStackTrace();
+                userStats.put("userCredit", java.math.BigDecimal.ZERO);
             }
 
-            // 用户交易次数
+            // 用户交易次数 - 使用真实数据
             try {
-                // 实际应该调用 tradeOrderFeignClient 获取用户交易记录数
-                userStats.put("tradeCount", 15);
+                Result<Map<String, Object>> statsResult = tradeOrderFeignClient.getUserOrderStats(userId);
+                if (statsResult != null && statsResult.getData() != null) {
+                    Map<String, Object> stats = statsResult.getData();
+                    userStats.put("tradeCount", stats.get("closedOrders"));
+                } else {
+                    userStats.put("tradeCount", 0);
+                }
             } catch (Exception e) {
+                e.printStackTrace();
                 userStats.put("tradeCount", 0);
             }
 
             return Result.success(userStats);
         } catch (Exception e) {
+            e.printStackTrace();
             return Result.error("获取用户统计数据失败：" + e.getMessage());
         }
     }

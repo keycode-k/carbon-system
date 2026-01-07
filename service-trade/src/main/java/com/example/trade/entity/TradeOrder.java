@@ -29,6 +29,16 @@ public class TradeOrder {
 
     private String status; // 状态: OPEN (挂单中), CLOSED (已结束), CANCELLED (已撤销)
 
+    private Long matchedOrderId; // 匹配的订单ID
+    
+    private LocalDateTime matchTime; // 成交时间
+    
+    private BigDecimal finalPrice; // 最终成交价
+    
+    private Integer validDays; // 订单有效期（天数），默认7天
+    
+    private LocalDateTime expireTime; // 订单到期时间
+
     private LocalDateTime createTime;
     
     private LocalDateTime updateTime;

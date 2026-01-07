@@ -45,3 +45,19 @@ VALUES
 ('CM-021-V01', '工业企业节能改造项目方法学', '节能减排', 'V1.0', '适用于通过技术改造提高能源利用效率的项目', '工信部', '2023-04-01 00:00:00', 'ACTIVE'),
 ('CM-031-V01', '垃圾焚烧发电项目方法学', '废弃物处理', 'V1.0', '适用于城市生活垃圾焚烧发电项目', '住建部', '2023-06-10 00:00:00', 'ACTIVE');
 
+-- 项目文档管理表
+CREATE TABLE IF NOT EXISTS `project_document` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `project_id` BIGINT(20) NOT NULL COMMENT '项目ID',
+  `doc_name` VARCHAR(200) NOT NULL COMMENT '文档名称',
+  `doc_type` VARCHAR(50) DEFAULT NULL COMMENT '文档类型(设计文档/监测报告/核查报告)',
+  `file_url` VARCHAR(500) DEFAULT NULL COMMENT '文件URL',
+  `file_size` BIGINT(20) DEFAULT NULL COMMENT '文件大小(bytes)',
+  `version` VARCHAR(20) DEFAULT 'v1.0' COMMENT '版本号',
+  `upload_user_id` BIGINT(20) DEFAULT NULL COMMENT '上传人ID',
+  `status` VARCHAR(20) DEFAULT 'DRAFT' COMMENT '状态(DRAFT-草稿/REVIEWING-审核中/APPROVED-已批准)',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_project_id` (`project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='项目文档管理表';

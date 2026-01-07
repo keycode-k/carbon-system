@@ -96,11 +96,15 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const isCollapse = ref(false)
-const username = ref(localStorage.getItem('username') || 'Admin')
+
+// 从 userStore 获取用户名，如果没有则使用默认值
+const username = computed(() => userStore.username || 'Guest')
 
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value
@@ -123,6 +127,9 @@ const resolvePath = (route) => {
 }
 
 const logout = () => {
+  // 清理用户信息
+  userStore.logout()
+  // 跳转到登录页
   router.push('/login')
 }
 </script>

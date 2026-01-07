@@ -111,6 +111,12 @@ const routes = [
         name: 'MarketAccount',
         component: () => import('@/views/market/account.vue'),
         meta: { title: '交易账户' }
+      },
+      {
+        path: 'trade-records',
+        name: 'TradeRecords',
+        component: () => import('@/views/market/trade-records.vue'),
+        meta: { title: '交易记录' }
       }
     ]
   },
@@ -171,6 +177,30 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+// 路由导航守卫
+router.beforeEach((to, from, next) => {
+  // 获取 token
+  const token = localStorage.getItem('token')
+  
+  // 如果访问登录页
+  if (to.path === '/login') {
+    // 如果已经登录，跳转到首页
+    if (token) {
+      next('/')
+    } else {
+      next()
+    }
+  } else {
+    // 访问其他页面，检查是否已登录
+    if (token) {
+      next()
+    } else {
+      // 未登录，跳转到登录页
+      next('/login')
+    }
+  }
 })
 
 export default router

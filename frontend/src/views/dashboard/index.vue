@@ -114,11 +114,14 @@
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { getDashboardSummary, getUserStats } from '@/api/dashboard'
+import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 
 const router = useRouter()
-const username = ref('Admin')
+const userStore = useUserStore()
+// 使用 computed 从 userStore 获取用户名
+const username = computed(() => userStore.username || 'Guest')
 const loading = ref(false)
 const chartRef = ref(null)
 let chartInstance = null
@@ -144,10 +147,6 @@ const userStatsData = ref({
 })
 
 onMounted(() => {
-  const storedUser = localStorage.getItem('username')
-  if (storedUser) {
-    username.value = storedUser
-  }
   loadDashboardData()
   initChart()
 })
@@ -167,14 +166,15 @@ const currentDate = computed(() => {
 const loadDashboardData = async () => {
   loading.value = true
   try {
+    const userId = userStore.userId || 1
     // 获取汇总数据
-    const summaryRes = await getDashboardSummary(1)
+    const summaryRes = await getDashboardSummary(userId)
     if (summaryRes) {
       summaryData.value = summaryRes
     }
 
     // 获取用户统计数据
-    const userStatsRes = await getUserStats(1)
+    const userStatsRes = await getUserStats(userId)
     if (userStatsRes) {
       userStatsData.value = userStatsRes
     }

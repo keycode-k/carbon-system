@@ -32,4 +32,16 @@ public interface TradeOrderFeignClient {
             @RequestParam(value = "page", defaultValue = "1") Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size
     );
+    
+    /**
+     * 获取用户订单统计
+     */
+    @GetMapping("/api/trade/orders/stats/user")
+    Result<Map<String, Object>> getUserOrderStats(@RequestParam("userId") Long userId);
+    
+    /**
+     * 获取今日交易金额
+     */
+    @GetMapping("/api/trade/orders/stats/today")
+    Result<java.math.BigDecimal> getTodayTradeAmount(@RequestParam("userId") Long userId);
 }

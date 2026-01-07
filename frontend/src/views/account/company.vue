@@ -121,6 +121,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getCompanyInfo, submitCertification, saveDraft as saveDraftApi } from '@/api/company'
+import { useUserStore } from '@/store/user'
 
 const formRef = ref(null)
 const companyInfo = ref(null)
@@ -128,8 +129,10 @@ const isEdit = ref(false)
 const submitting = ref(false)
 const saving = ref(false)
 
+const userStore = useUserStore()
+
 const form = reactive({
-  userId: 1, // TODO: 从登录信息获取
+  userId: userStore.userId || 1,
   companyName: '',
   creditCode: '',
   legalPerson: '',
@@ -157,7 +160,7 @@ const rules = {
 
 const fetchCompanyInfo = async () => {
   try {
-    const userId = 1 // TODO: 从登录信息获取
+    const userId = userStore.userId || 1
     const res = await getCompanyInfo(userId)
     if (res) {
       companyInfo.value = res

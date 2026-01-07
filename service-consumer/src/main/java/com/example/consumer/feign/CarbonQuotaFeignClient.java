@@ -1,5 +1,6 @@
 package com.example.consumer.feign;
 
+import com.example.common.model.Result;
 import com.example.consumer.entity.CarbonQuota;
 import com.example.consumer.entity.CarbonQuotaDetail;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,11 +13,14 @@ import java.util.List;
 public interface CarbonQuotaFeignClient {
 
     @GetMapping("/api/assets/quota/get")
-    CarbonQuota getQuota(@RequestParam("userId") Long userId, @RequestParam("year") Integer year);
+    Result<CarbonQuota> getQuota(@RequestParam("userId") Long userId, @RequestParam("year") Integer year);
 
     @GetMapping("/api/assets/quota/list")
-    List<CarbonQuota> listQuotas(@RequestParam("userId") Long userId);
+    Result<List<CarbonQuota>> listQuotas(@RequestParam("userId") Long userId);
 
     @GetMapping("/api/assets/quota/detail/list")
-    List<CarbonQuotaDetail> listQuotaDetails(@RequestParam("quotaId") Long quotaId);
+    Result<List<CarbonQuotaDetail>> listQuotaDetails(@RequestParam("quotaId") Long quotaId);
+    
+    @GetMapping("/api/assets/quota/stats/total")
+    Result<java.math.BigDecimal> getTotalQuota(@RequestParam("userId") Long userId);
 }

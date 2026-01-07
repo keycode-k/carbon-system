@@ -69,6 +69,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { getQuota, getQuotaDetails } from '@/api/assets'
 import { ElMessage } from 'element-plus'
+import { useUserStore } from '@/store/user'
 
 const currentYear = ref('2025')
 const quotaData = ref({
@@ -79,6 +80,9 @@ const quotaData = ref({
 
 const loading = ref(false)
 const tableData = ref([])
+
+// 获取用户store
+const userStore = useUserStore()
 
 // 计算盈余配额
 const surplus = computed(() => {
@@ -97,8 +101,8 @@ const usageRate = computed(() => {
 const fetchData = async () => {
   loading.value = true
   try {
-    // 同时传userId和year
-    const userId = 1 // TODO: 从登录信息中获取
+    // 从store获取userId
+    const userId = userStore.userId || 1
     const res = await getQuota(userId, currentYear.value)
     if (res && res.id) {
       quotaData.value = res

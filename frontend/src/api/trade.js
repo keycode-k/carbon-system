@@ -54,11 +54,11 @@ export function getAccountStatistics(userId) {
 }
 
 /**
- * 获取交易订单列表
+ * 获取市场交易订单列表（所有OPEN状态的订单）
  */
-export function getTradeOrders(params) {
+export function getMarketOrders(params) {
   return request({
-    url: '/api/trade/order/list',
+    url: '/api/trade/orders/market',
     method: 'get',
     params
   })
@@ -67,9 +67,9 @@ export function getTradeOrders(params) {
 /**
  * 发布交易订单
  */
-export function createTradeOrder(data) {
+export function publishTradeOrder(data) {
   return request({
-    url: '/api/trade/order/create',
+    url: '/api/trade/orders/publish',
     method: 'post',
     data
   })
@@ -80,7 +80,7 @@ export function createTradeOrder(data) {
  */
 export function cancelTradeOrder(orderId) {
   return request({
-    url: `/api/trade/order/cancel/${orderId}`,
+    url: `/api/trade/orders/cancel/${orderId}`,
     method: 'post'
   })
 }
@@ -88,11 +88,11 @@ export function cancelTradeOrder(orderId) {
 /**
  * 查询我的订单
  */
-export function getMyOrders(userId, params) {
+export function getMyOrders(params) {
   return request({
-    url: '/api/trade/order/my',
+    url: '/api/trade/orders/my',
     method: 'get',
-    params: { userId, ...params }
+    params
   })
 }
 
@@ -185,3 +185,45 @@ export function cancelQuote(id, userId) {
   })
 }
 
+/**
+ * 获取我的交易记录
+ */
+export function getMyTradeRecords(params) {
+  return request({
+    url: '/api/trade/records/my',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 获取所有交易记录（管理员）
+ */
+export function getAllTradeRecords(params) {
+  return request({
+    url: '/api/trade/records/all',
+    method: 'get',
+    params
+  })
+}
+
+/**
+ * 根据订单ID获取交易记录
+ */
+export function getTradeRecordsByOrderId(orderId) {
+  return request({
+    url: `/api/trade/records/by-order/${orderId}`,
+    method: 'get'
+  })
+}
+
+/**
+ * 撤销订单
+ */
+export function cancelOrder(orderId, userId) {
+  return request({
+    url: `/api/trade/orders/cancel/${orderId}`,
+    method: 'post',
+    params: { userId }
+  })
+}

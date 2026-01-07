@@ -22,8 +22,8 @@ spring:
       force: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://132.226.64.96:3306/test1?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&autoReconnect=true&maxReconnects=3&initialTimeout=10&connectTimeout=60000&socketTimeout=300000&allowPublicKeyRetrieval=true
-    username: 123456
+    url: jdbc:mysql://45.153.245.177:3306/carbondate?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&autoReconnect=true&maxReconnects=3&initialTimeout=10&connectTimeout=60000&socketTimeout=300000&allowPublicKeyRetrieval=true
+    username: xueerze
     password: 123456
     hikari:
       connection-timeout: 60000

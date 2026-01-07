@@ -13,4 +13,7 @@ public interface CarbonCreditFeignClient {
 
     @GetMapping("/api/assets/credit/list")
     Result<List<CarbonCredit>> listByUserId(@RequestParam("userId") Long userId);
+    
+    @GetMapping("/api/assets/credit/stats/total")
+    Result<java.math.BigDecimal> getTotalCredit(@RequestParam("userId") Long userId);
 }

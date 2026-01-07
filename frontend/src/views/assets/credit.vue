@@ -95,6 +95,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { getCreditList } from '@/api/assets'
+import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 
 const loading = ref(false)
@@ -114,6 +115,8 @@ const totalAmount = computed(() => {
     return tableData.value.reduce((sum, item) => sum + (item.amount || 0), 0)
 })
 
+const userStore = useUserStore()
+
 const fetchData = async () => {
     loading.value = true
     const token = localStorage.getItem('token')
@@ -124,8 +127,8 @@ const fetchData = async () => {
     }
     
     try {
-        // 使用userId而不是token
-        const userId = 1 // TODO: 从登录信息中获取
+        // 从store获取userId
+        const userId = userStore.userId || 1
         const res = await getCreditList(userId)
         if (res && res.length !== undefined) {
              // If response is the list directly (due to request interceptor processing)

@@ -68,9 +68,12 @@ public class UserController {
             // 将token存入Redis，设置过期时间为24小时
             redisTemplate.opsForValue().set(token, String.valueOf(existUser.getId()), 24, TimeUnit.HOURS);
             
-            // 返回token
+            // 返回token和用户基本信息
             Map<String, Object> data = new HashMap<>();
             data.put("token", token);
+            data.put("userId", existUser.getId());
+            data.put("username", existUser.getUsername());
+            // 注意：User实体暂无role字段，如需要可在数据库添加并在实体类中定义
             return Result.success("登录成功", data);
         } else {
             return Result.error("用户名或密码错误");

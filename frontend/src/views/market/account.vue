@@ -128,9 +128,12 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getAccountInfo, recharge, withdraw } from '@/api/trade'
+import { useUserStore } from '@/store/user'
 
-// 当前用户ID（实际应从用户store获取）
-const userId = ref(1)
+const userStore = useUserStore()
+
+// 当前用户ID（从 userStore 获取）
+const userId = ref(userStore.userId || 1)
 
 // 账户信息
 const accountInfo = ref({})
