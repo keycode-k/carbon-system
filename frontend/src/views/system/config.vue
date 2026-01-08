@@ -205,10 +205,9 @@ const getList = async () => {
   loading.value = true
   try {
     const res = await getConfigList(queryParams)
-    if (res.code === 200) {
-      configList.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
+    // request.js 已经解包，返回的直接是 Page 对象
+    configList.value = res.records || res.data?.records || []
+    total.value = res.total || res.data?.total || 0
   } catch (error) {
     console.error('获取配置列表失败:', error)
   } finally {
@@ -220,7 +219,10 @@ const getList = async () => {
 const loadGroups = async () => {
   try {
     const res = await getConfigGroups()
-    if (res.code === 200 && res.data?.length) {
+    // request.js 已经解包，返回的直接是数组
+    if (Array.isArray(res)) {
+      groupOptions.value = res
+    } else if (res.data?.length) {
       groupOptions.value = res.data
     }
   } catch (error) {
@@ -262,9 +264,8 @@ const handleEdit = async (row) => {
   dialogTitle.value = '编辑配置'
   try {
     const res = await getConfigById(row.id)
-    if (res.code === 200) {
-      Object.assign(form, res.data)
-    }
+    // request.js 已经解包
+    Object.assign(form, res.data || res)
   } catch (error) {
     Object.assign(form, row)
   }
@@ -275,11 +276,9 @@ const handleEdit = async (row) => {
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm(`确定要删除配置"${row.configName}"吗？`, '提示', { type: 'warning' })
-    const res = await deleteConfig(row.id)
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      getList()
-    }
+    await deleteConfig(row.id)
+    ElMessage.success('删除成功')
+    getList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
@@ -292,10 +291,8 @@ const handleBatchDelete = async () => {
   try {
     await ElMessageBox.confirm(`确定要删除选中的${selectedIds.value.length}条配置吗？`, '提示', { type: 'warning' })
     const res = await batchDeleteConfig(selectedIds.value)
-    if (res.code === 200) {
-      ElMessage.success(res.data || '删除成功')
-      getList()
-    }
+    ElMessage.success(res || '删除成功')
+    getList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('批量删除失败:', error)
@@ -306,10 +303,8 @@ const handleBatchDelete = async () => {
 // 刷新缓存
 const handleRefreshCache = async () => {
   try {
-    const res = await refreshConfigCache()
-    if (res.code === 200) {
-      ElMessage.success('缓存刷新成功')
-    }
+    await refreshConfigCache()
+    ElMessage.success('缓存刷新成功')
   } catch (error) {
     console.error('刷新缓存失败:', error)
   }
@@ -321,13 +316,11 @@ const submitForm = async () => {
     await formRef.value?.validate()
     
     const isEdit = !!form.id
-    const res = isEdit ? await updateConfig(form) : await createConfig(form)
+    isEdit ? await updateConfig(form) : await createConfig(form)
     
-    if (res.code === 200) {
-      ElMessage.success(isEdit ? '更新成功' : '创建成功')
-      dialogVisible.value = false
-      getList()
-    }
+    ElMessage.success(isEdit ? '更新成功' : '创建成功')
+    dialogVisible.value = false
+    getList()
   } catch (error) {
     console.error('提交失败:', error)
   }

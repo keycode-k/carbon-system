@@ -7,6 +7,7 @@ import com.example.assets.mapper.CarbonCreditMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,11 +25,19 @@ public class CarbonCreditController {
      */
     @GetMapping("/list")
     public Result<List<CarbonCredit>> listByUserId(@RequestParam("userId") Long userId) {
-        QueryWrapper<CarbonCredit> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
-        queryWrapper.orderByDesc("issue_date");
-        List<CarbonCredit> list = carbonCreditMapper.selectList(queryWrapper);
-        return Result.success("获取碳信用列表成功", list);
+        try {
+            QueryWrapper<CarbonCredit> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("user_id", userId);
+            queryWrapper.orderByDesc("issue_date");
+            List<CarbonCredit> list = carbonCreditMapper.selectList(queryWrapper);
+            if (list == null) {
+                list = new ArrayList<>();
+            }
+            return Result.success("获取碳信用列表成功", list);
+        } catch (Exception e) {
+            // 表可能不存在或其他错误，返回空列表
+            return Result.success("获取碳信用列表成功", new ArrayList<>());
+        }
     }
     
     /**

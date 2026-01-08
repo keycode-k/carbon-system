@@ -185,7 +185,7 @@ import { getDashboardSummary, getUserStats } from '@/api/dashboard'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
-import { Top, Bottom, TrendCharts, Grid, Clock, Plus, ShoppingCart, Document, Setting } from '@element-plus/icons-vue'
+import { Top, Bottom, TrendCharts, Grid, Clock, Plus, ShoppingCart, Document, Setting, Cloudy, CircleCheck, Money, Bell } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()

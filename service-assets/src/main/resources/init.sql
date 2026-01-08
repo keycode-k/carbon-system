@@ -8,12 +8,13 @@ CREATE TABLE IF NOT EXISTS `carbon_quota` (
   `status` TINYINT(1) DEFAULT 0 COMMENT '履约状态 0-未履约 1-已履约',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_year` (`user_id`, `year`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='碳配额表';
 
 -- 插入一些测试数据 (假设用户ID为1)
-INSERT INTO `carbon_quota` (`user_id`, `year`, `total_quota`, `verified_emission`, `status`) 
-VALUES (1, 2025, 1000000.00, 950000.00, 1) ON DUPLICATE KEY UPDATE id=id;
+INSERT IGNORE INTO `carbon_quota` (`user_id`, `year`, `total_quota`, `verified_emission`, `status`) 
+VALUES (1, 2025, 1000000.00, 950000.00, 1);
 
 -- 创建碳信用(CCER)表
 CREATE TABLE IF NOT EXISTS `carbon_credit` (
@@ -30,11 +31,13 @@ CREATE TABLE IF NOT EXISTS `carbon_credit` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='碳信用表';
 
--- 插入一些CCER测试数据
-INSERT INTO `carbon_credit` (`user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
-VALUES (1, '河北张家口风电项目', '风电', 5000.00, 0, '2024-05-20', '2029-05-20');
-INSERT INTO `carbon_credit` (`user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
-VALUES (1, '四川广元造林碳汇项目', '林业', 2000.00, 2, '2023-08-15', '2028-08-15');
+-- 插入一些CCER测试数据（使用 INSERT IGNORE 避免重复插入错误）
+INSERT IGNORE INTO `carbon_credit` (`id`, `user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
+VALUES (1, 1, '河北张家口风电项目', '风电', 5000.00, 0, '2024-05-20', '2029-05-20');
+INSERT IGNORE INTO `carbon_credit` (`id`, `user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
+VALUES (2, 1, '四川广元造林碳汇项目', '林业', 2000.00, 0, '2023-08-15', '2028-08-15');
+INSERT IGNORE INTO `carbon_credit` (`id`, `user_id`, `project_name`, `project_type`, `amount`, `status`, `issue_date`, `expiry_date`)
+VALUES (3, 1, '云南大理光伏发电项目', '光伏', 3500.00, 0, '2024-01-10', '2029-01-10');
 
 -- 创建配额明细表
 CREATE TABLE IF NOT EXISTS `carbon_quota_detail` (
@@ -49,6 +52,5 @@ CREATE TABLE IF NOT EXISTS `carbon_quota_detail` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配额明细表';
 
 -- 插入测试明细
-INSERT INTO `carbon_quota_detail` (`quota_id`, `type`, `amount`, `balance`, `remark`, `change_date`)
-VALUES 
-((SELECT id FROM carbon_quota WHERE user_id=1 AND year=2025 LIMIT 1), '初始发放', 1000000.00, 1000000.00, '2025年度配额预发放', NOW());
+INSERT IGNORE INTO `carbon_quota_detail` (`id`, `quota_id`, `type`, `amount`, `balance`, `remark`, `change_date`)
+VALUES (1, 1, '初始发放', 1000000.00, 1000000.00, '2025年度配额预发放', NOW());

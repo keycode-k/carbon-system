@@ -69,6 +69,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login, register } from '@/api/user'
 import { useUserStore } from '@/store/user'
+import { DataLine, TrendCharts, SetUp } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()

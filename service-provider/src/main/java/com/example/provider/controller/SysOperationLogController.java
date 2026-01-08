@@ -7,10 +7,10 @@ import com.example.common.model.Result;
 import com.example.provider.entity.SysOperationLog;
 import com.example.provider.service.SysOperationLogService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 操作日志控制器
@@ -23,6 +23,8 @@ public class SysOperationLogController {
     @Autowired
     private SysOperationLogService logService;
     
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
     /**
      * 分页查询操作日志
      */
@@ -32,13 +34,31 @@ public class SysOperationLogController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String module,
             @RequestParam(required = false) String operationType,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
         
-        Page<SysOperationLog> result = logService.pageList(username, module, operationType, startTime, endTime, page, size);
+        // 解析日期时间参数，空字符串处理为null
+        LocalDateTime startDateTime = parseDateTime(startTime);
+        LocalDateTime endDateTime = parseDateTime(endTime);
+        
+        Page<SysOperationLog> result = logService.pageList(username, module, operationType, startDateTime, endDateTime, page, size);
         return Result.success(result);
+    }
+    
+    /**
+     * 解析日期时间字符串，空字符串返回null
+     */
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(dateTimeStr, DATE_TIME_FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     /**

@@ -97,6 +97,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { getCreditList } from '@/api/assets'
 import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
+import { Top } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const tableData = ref([])

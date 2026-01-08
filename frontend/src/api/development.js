@@ -74,14 +74,37 @@ export function batchDeleteMethodology(ids) {
   })
 }
 
+// ==================== 项目管理 API ====================
+
 /**
- * 查询开发项目列表
+ * 分页查询开发项目列表
  */
 export function getProjectList(params) {
   return request({
     url: '/api/development/projects',
     method: 'get',
     params
+  })
+}
+
+/**
+ * 查询所有项目（不分页，用于下拉选择）
+ */
+export function getAllProjects(status) {
+  return request({
+    url: '/api/development/projects/all',
+    method: 'get',
+    params: { status }
+  })
+}
+
+/**
+ * 根据ID查询项目详情
+ */
+export function getProjectById(id) {
+  return request({
+    url: `/api/development/projects/${id}`,
+    method: 'get'
   })
 }
 
@@ -93,5 +116,37 @@ export function createProject(data) {
     url: '/api/development/projects',
     method: 'post',
     data
+  })
+}
+
+/**
+ * 更新开发项目
+ */
+export function updateProject(id, data) {
+  return request({
+    url: `/api/development/projects/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 删除开发项目
+ */
+export function deleteProject(id) {
+  return request({
+    url: `/api/development/projects/${id}`,
+    method: 'delete'
+  })
+}
+
+/**
+ * 更新项目阶段
+ */
+export function updateProjectStep(id, step) {
+  return request({
+    url: `/api/development/projects/${id}/step`,
+    method: 'put',
+    params: { step }
   })
 }

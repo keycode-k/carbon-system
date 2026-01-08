@@ -2,19 +2,20 @@
 CREATE TABLE IF NOT EXISTS `development_project` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `name` VARCHAR(255) NOT NULL COMMENT '项目名称',
-  `methodology` VARCHAR(255) DEFAULT NULL COMMENT '适用方法学',
+  `project_type` VARCHAR(50) DEFAULT NULL COMMENT '项目类型(风电/光伏/林业碳汇等)',
+  `methodology_id` BIGINT(20) DEFAULT NULL COMMENT '方法学ID',
   `status` VARCHAR(50) DEFAULT 'PLANNED' COMMENT '状态: PLANNED, REGISTERED, VERIFIED, ISSUED',
-  `owner_id` BIGINT(20) NOT NULL COMMENT '业主ID',
+  `current_step` INT DEFAULT 0 COMMENT '当前阶段(0-5)',
+  `owner_id` BIGINT(20) DEFAULT NULL COMMENT '业主ID',
   `location` VARCHAR(255) DEFAULT NULL COMMENT '项目地点',
   `estimated_emission_reduction` DOUBLE DEFAULT NULL COMMENT '预估减排量',
+  `description` TEXT COMMENT '项目描述',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_methodology_id` (`methodology_id`),
+  KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='减排项目开发表';
-
--- 插入测试项目
-INSERT INTO `development_project` (`name`, `methodology`, `status`, `owner_id`, `location`, `estimated_emission_reduction`)
-VALUES ('内蒙古阿拉善造林项目', 'CM-001-V01', 'PLANNED', 1, '内蒙古阿拉善左旗', 50000.0);
 
 -- 方法学管理表
 CREATE TABLE IF NOT EXISTS `methodology` (
@@ -43,7 +44,24 @@ VALUES
 ('CM-011-V01', '并网光伏发电项目方法学', '可再生能源', 'V1.0', '适用于并网太阳能光伏发电减排项目', '国家发改委', '2022-11-01 00:00:00', 'ACTIVE'),
 ('CM-012-V01', '并网海上风力发电项目方法学', '可再生能源', 'V1.0', '适用于海上风力发电项目', '国家能源局', '2023-02-15 00:00:00', 'ACTIVE'),
 ('CM-021-V01', '工业企业节能改造项目方法学', '节能减排', 'V1.0', '适用于通过技术改造提高能源利用效率的项目', '工信部', '2023-04-01 00:00:00', 'ACTIVE'),
-('CM-031-V01', '垃圾焚烧发电项目方法学', '废弃物处理', 'V1.0', '适用于城市生活垃圾焚烧发电项目', '住建部', '2023-06-10 00:00:00', 'ACTIVE');
+('CM-031-V01', '垃圾焚烧发电项目方法学', '废弃物处理', 'V1.0', '适用于城市生活垃圾焚烧发电项目', '住建部', '2023-06-10 00:00:00', 'ACTIVE')
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+-- 插入测试项目数据
+INSERT INTO `development_project` (`name`, `project_type`, `methodology_id`, `status`, `current_step`, `owner_id`, `location`, `estimated_emission_reduction`, `description`)
+SELECT '内蒙古100MW风电并网项目', '风电', m.id, 'PLANNED', 1, 1, '内蒙古锡林郭勒盟', 150000.0, '利用内蒙古丰富的风力资源，建设100MW风力发电场，预计年发电量2.5亿kWh'
+FROM `methodology` m WHERE m.code = 'CM-012-V01' LIMIT 1
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+INSERT INTO `development_project` (`name`, `project_type`, `methodology_id`, `status`, `current_step`, `owner_id`, `location`, `estimated_emission_reduction`, `description`)
+SELECT '广东某造纸厂生物质锅炉改造', '节能提效', m.id, 'REGISTERED', 3, 2, '广东省东莞市', 35000.0, '将传统燃煤锅炉改造为生物质燃料锅炉，减少碳排放'
+FROM `methodology` m WHERE m.code = 'CM-021-V01' LIMIT 1
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
+
+INSERT INTO `development_project` (`name`, `project_type`, `methodology_id`, `status`, `current_step`, `owner_id`, `location`, `estimated_emission_reduction`, `description`)
+SELECT '福建沿海红树林修复工程', '林业碳汇', m.id, 'PLANNED', 2, 3, '福建省漳州市', 28000.0, '修复和保护福建沿海红树林生态系统，增加蓝碳储量'
+FROM `methodology` m WHERE m.code = 'CM-001-V01' LIMIT 1
+ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
 -- 项目文档管理表
 CREATE TABLE IF NOT EXISTS `project_document` (

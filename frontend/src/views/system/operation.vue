@@ -235,20 +235,19 @@ const getTypeColor = (type) => {
 const getList = async () => {
   loading.value = true
   try {
-    // 处理日期范围
+    // 处理日期范围，后端需要完整的日期时间格式
     if (dateRange.value && dateRange.value.length === 2) {
-      queryParams.startTime = dateRange.value[0]
-      queryParams.endTime = dateRange.value[1]
+      queryParams.startTime = dateRange.value[0] + ' 00:00:00'
+      queryParams.endTime = dateRange.value[1] + ' 23:59:59'
     } else {
       queryParams.startTime = ''
       queryParams.endTime = ''
     }
     
     const res = await getOperationLogList(queryParams)
-    if (res.code === 200) {
-      logList.value = res.data.records || []
-      total.value = res.data.total || 0
-    }
+    // request.js 已经解包，返回的直接是 Page 对象
+    logList.value = res.records || res.data?.records || []
+    total.value = res.total || res.data?.total || 0
   } catch (error) {
     console.error('获取日志列表失败:', error)
   } finally {
@@ -279,10 +278,9 @@ const resetQuery = () => {
 const handleDetail = async (row) => {
   try {
     const res = await getOperationLogDetail(row.id)
-    if (res.code === 200) {
-      currentLog.value = res.data
-      detailVisible.value = true
-    }
+    // request.js 已经解包
+    currentLog.value = res.data || res
+    detailVisible.value = true
   } catch (error) {
     // 如果详情接口失败，直接使用列表数据
     currentLog.value = row
@@ -304,12 +302,10 @@ const confirmClean = async () => {
       { type: 'warning' }
     )
     
-    const res = await cleanOperationLog(cleanForm.days)
-    if (res.code === 200) {
-      ElMessage.success('清理成功')
-      cleanVisible.value = false
-      getList()
-    }
+    await cleanOperationLog(cleanForm.days)
+    ElMessage.success('清理成功')
+    cleanVisible.value = false
+    getList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('清理日志失败:', error)

@@ -118,6 +118,27 @@ ul, li {
   transition: all 0.2s ease !important;
 }
 
+/* Link 类型按钮优化 - 透明背景 */
+.el-button.is-link {
+  color: #10b981 !important;
+  background: transparent !important;
+}
+
+.el-button.is-link:hover {
+  color: #34d399 !important;
+  background: transparent !important;
+}
+
+.el-button--primary.is-link {
+  color: #10b981 !important;
+  background: transparent !important;
+}
+
+.el-button--primary.is-link:hover {
+  color: #34d399 !important;
+  background: transparent !important;
+}
+
 .el-button--primary {
   background: linear-gradient(135deg, var(--carbon-primary) 0%, #059669 100%) !important;
   border: none !important;
@@ -129,18 +150,32 @@ ul, li {
 }
 
 .el-button--success {
-  background: linear-gradient(135deg, var(--carbon-success) 0%, #16a34a 100%) !important;
+  background: linear-gradient(135deg, #34d399 0%, #22c55e 100%) !important;
   border: none !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.el-button--success:hover {
+  background: linear-gradient(135deg, #4ade80 0%, #34d399 100%) !important;
 }
 
 .el-button--warning {
-  background: linear-gradient(135deg, var(--carbon-warning) 0%, #d97706 100%) !important;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
   border: none !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.el-button--warning:hover {
+  background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%) !important;
 }
 
 .el-button--danger {
-  background: linear-gradient(135deg, var(--carbon-danger) 0%, #dc2626 100%) !important;
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%) !important;
   border: none !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Element Plus 表格优化 */

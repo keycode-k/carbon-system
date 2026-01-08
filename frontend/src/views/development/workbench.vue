@@ -7,21 +7,28 @@
           <template #header>
             <div class="clearfix">
               <span>进行中的项目</span>
-              <el-button style="float: right; padding: 3px 0" link type="primary">新建</el-button>
+              <el-button style="float: right; padding: 3px 0" link type="primary" @click="goToProjectCreate">新建</el-button>
             </div>
           </template>
-          <div class="project-list">
+          <div v-if="projectLoading" class="loading-container">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span>加载中...</span>
+          </div>
+          <div v-else-if="projects.length === 0" class="empty-container">
+            <el-empty description="暂无项目" :image-size="80" />
+          </div>
+          <div v-else class="project-list">
              <div 
                 v-for="(item, index) in projects" 
-                :key="index" 
+                :key="item.id" 
                 class="project-item"
-                :class="{ active: currentProject === index }"
-                @click="currentProject = index"
+                :class="{ active: currentProjectIndex === index }"
+                @click="selectProject(index)"
              >
                 <div class="p-title">{{ item.name }}</div>
                 <div class="p-info">
-                   <el-tag size="small">{{ item.type }}</el-tag>
-                   <span class="p-date">{{ item.date }}</span>
+                   <el-tag size="small">{{ item.projectType || '未分类' }}</el-tag>
+                   <span class="p-date">{{ formatDate(item.createTime) }}</span>
                 </div>
              </div>
           </div>
@@ -30,17 +37,20 @@
       
       <!-- 右侧工作详情 -->
       <el-col :span="18">
-        <el-card shadow="hover">
+        <el-card v-if="currentProject" shadow="hover">
           <template #header>
              <div class="detail-header">
-                <h3>{{ projects[currentProject].name }}</h3>
-                <el-button type="primary" size="small">保存进度</el-button>
+                <h3>{{ currentProject.name }}</h3>
+                <div>
+                  <el-button type="success" size="small" @click="handleSaveProgress">保存进度</el-button>
+                  <el-button type="primary" size="small" @click="handleNextStep" :disabled="currentProject.currentStep >= 5">下一阶段</el-button>
+                </div>
              </div>
           </template>
 
           <!-- 流程步骤 -->
           <div class="step-container">
-            <el-steps :active="projects[currentProject].step" finish-status="success" align-center>
+            <el-steps :active="currentProject.currentStep || 0" finish-status="success" align-center>
               <el-step title="立项" description="提交项目建议书"></el-step>
               <el-step title="PDD设计" description="编写项目设计文件"></el-step>
               <el-step title="第三方审定" description="DOE 现场审定"></el-step>
@@ -54,15 +64,31 @@
 
           <!-- 当前任务内容 -->
           <div class="task-content">
-             <h4>当前阶段任务：PDD 文件编写</h4>
-             <el-alert title="请依据 CM-001-V01 方法学进行测算" type="info" show-icon style="margin-bottom: 20px" />
+             <h4>当前阶段任务：{{ getStepText(currentProject.currentStep) }}</h4>
+             <el-alert 
+               v-if="currentProject.methodologyCode"
+               :title="`请依据 ${currentProject.methodologyCode} 方法学进行测算`" 
+               type="info" 
+               show-icon 
+               style="margin-bottom: 20px" 
+             />
              
              <el-form label-position="top">
                 <el-form-item label="项目基准线描述">
-                   <el-input type="textarea" :rows="4" placeholder="请输入..." />
+                   <el-input 
+                     v-model="workData.baselineDescription"
+                     type="textarea" 
+                     :rows="4" 
+                     placeholder="请输入项目基准线描述..." 
+                   />
                 </el-form-item>
                 <el-form-item label="预计年减排量 (tCO2e)">
-                   <el-input-number v-model="num" :min="0" />
+                   <el-input-number 
+                     v-model="currentProject.estimatedEmissionReduction" 
+                     :min="0" 
+                     :precision="2"
+                     style="width: 200px"
+                   />
                 </el-form-item>
                 <el-form-item label="文档上传">
                    <el-upload
@@ -104,7 +130,7 @@
                      <el-tag 
                        :type="scope.row.status === 'APPROVED' ? 'success' : scope.row.status === 'REVIEWING' ? 'warning' : 'info'"
                        size="small">
-                       {{ getStatusText(scope.row.status) }}
+                       {{ getDocStatusText(scope.row.status) }}
                      </el-tag>
                    </template>
                  </el-table-column>
@@ -125,6 +151,13 @@
              </div>
           </div>
         </el-card>
+        
+        <!-- 无项目时显示 -->
+        <el-card v-else shadow="hover">
+          <el-empty description="请从左侧选择一个项目，或新建项目">
+            <el-button type="primary" @click="goToProjectCreate">新建项目</el-button>
+          </el-empty>
+        </el-card>
       </el-col>
     </el-row>
   </div>
@@ -133,18 +166,33 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Loading } from '@element-plus/icons-vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { getDocumentsByProject, deleteDocument, downloadDocument } from '@/api/document'
+import { getDocumentsByProject, deleteDocument, downloadDocument, createDocumentVersion } from '@/api/document'
+import { getAllProjects, getProjectById, updateProject, updateProjectStep } from '@/api/development'
 
+const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
-const currentProject = ref(0)
-const num = ref(50000)
 
-const projects = [
-  { id: 1, name: '内蒙古 100MW 风电并网项目', type: '风电', date: '2025-10-01', step: 1 },
-  { id: 2, name: '广东某造纸厂生物质锅炉改造', type: '节能提效', date: '2025-09-15', step: 3 },
-  { id: 3, name: '福建沿海红树林修复工程', type: '林业碳汇', date: '2025-08-20', step: 2 },
-]
+// 项目列表相关
+const projects = ref([])
+const projectLoading = ref(false)
+const currentProjectIndex = ref(-1)
+
+// 当前选中项目
+const currentProject = computed(() => {
+  if (currentProjectIndex.value >= 0 && currentProjectIndex.value < projects.value.length) {
+    return projects.value[currentProjectIndex.value]
+  }
+  return null
+})
+
+// 工作数据
+const workData = ref({
+  baselineDescription: ''
+})
 
 // 文档管理
 const documentList = ref([])
@@ -163,20 +211,57 @@ const uploadHeaders = computed(() => {
 })
 
 const uploadData = computed(() => {
+  const stepDocTypes = ['立项申请', 'PDD设计文件', '审定报告', '备案材料', '核证报告', '签发证书']
   return {
-    projectId: projects[currentProject.value].id,
-    docName: '', // 会在beforeUpload中设置
-    docType: 'PDD设计文件',
+    projectId: currentProject.value?.id || 0,
+    docName: '',
+    docType: stepDocTypes[currentProject.value?.currentStep || 0],
     uploadUserId: userStore.userId || 1
   }
 })
 
+// 加载项目列表
+const loadProjects = async () => {
+  projectLoading.value = true
+  try {
+    const res = await getAllProjects()
+    projects.value = res || []
+    
+    // 如果URL带有projectId参数，选中该项目
+    const projectId = route.query.projectId
+    if (projectId) {
+      const index = projects.value.findIndex(p => p.id === Number(projectId))
+      if (index >= 0) {
+        currentProjectIndex.value = index
+      } else if (projects.value.length > 0) {
+        currentProjectIndex.value = 0
+      }
+    } else if (projects.value.length > 0) {
+      currentProjectIndex.value = 0
+    }
+  } catch (error) {
+    console.error('加载项目列表失败:', error)
+    ElMessage.error('加载项目列表失败')
+  } finally {
+    projectLoading.value = false
+  }
+}
+
+// 选择项目
+const selectProject = (index) => {
+  currentProjectIndex.value = index
+}
+
 // 加载文档列表
 const loadDocuments = async () => {
+  if (!currentProject.value?.id) {
+    documentList.value = []
+    return
+  }
+  
   documentLoading.value = true
   try {
-    const projectId = projects[currentProject.value].id
-    const res = await getDocumentsByProject(projectId)
+    const res = await getDocumentsByProject(currentProject.value.id)
     if (res) {
       documentList.value = res
     }
@@ -220,10 +305,7 @@ const handleDownload = async (row) => {
   try {
     const res = await downloadDocument(row.id)
     if (res) {
-      // 简化处理：提示文件路径
       ElMessage.success(`文件路径: ${res}`)
-      // 实际应该创建下载链接
-      // window.open(res, '_blank')
     }
   } catch (error) {
     console.error('下载失败:', error)
@@ -237,10 +319,14 @@ const handleVersion = (row) => {
     cancelButtonText: '取消',
     inputPattern: /^v\d+\.\d+$/,
     inputErrorMessage: '版本号格式错误，如: v1.1'
-  }).then(({ value }) => {
-    // TODO: 调用创建版本接口
-    ElMessage.success(`创建版本 ${value} 成功`)
-    loadDocuments()
+  }).then(async ({ value }) => {
+    try {
+      await createDocumentVersion(row.id, value, userStore.userId || 1)
+      ElMessage.success(`创建版本 ${value} 成功`)
+      loadDocuments()
+    } catch (error) {
+      ElMessage.error('创建版本失败')
+    }
   }).catch(() => {})
 }
 
@@ -261,6 +347,57 @@ const handleDelete = (row) => {
   }).catch(() => {})
 }
 
+// 保存进度
+const handleSaveProgress = async () => {
+  if (!currentProject.value) return
+  
+  try {
+    await updateProject(currentProject.value.id, {
+      estimatedEmissionReduction: currentProject.value.estimatedEmissionReduction,
+      description: workData.value.baselineDescription || currentProject.value.description
+    })
+    ElMessage.success('进度已保存')
+  } catch (error) {
+    ElMessage.error('保存失败')
+  }
+}
+
+// 下一阶段
+const handleNextStep = async () => {
+  if (!currentProject.value) return
+  
+  const nextStep = (currentProject.value.currentStep || 0) + 1
+  if (nextStep > 5) {
+    ElMessage.warning('已是最后阶段')
+    return
+  }
+  
+  ElMessageBox.confirm(
+    `确定要将项目推进到"${getStepText(nextStep)}"阶段吗？`,
+    '确认阶段推进',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'info'
+    }
+  ).then(async () => {
+    try {
+      await updateProjectStep(currentProject.value.id, nextStep)
+      currentProject.value.currentStep = nextStep
+      ElMessage.success(`已推进到${getStepText(nextStep)}阶段`)
+      // 刷新项目列表以更新状态
+      loadProjects()
+    } catch (error) {
+      ElMessage.error('阶段推进失败')
+    }
+  }).catch(() => {})
+}
+
+// 跳转新建项目
+const goToProjectCreate = () => {
+  router.push('/development/project')
+}
+
 // 格式化文件大小
 const formatFileSize = (bytes) => {
   if (!bytes) return '-'
@@ -269,8 +406,20 @@ const formatFileSize = (bytes) => {
   return (bytes / 1024 / 1024).toFixed(2) + ' MB'
 }
 
-// 状态文本
-const getStatusText = (status) => {
+// 格式化日期
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('zh-CN')
+}
+
+// 阶段文本
+const getStepText = (step) => {
+  const steps = ['立项', 'PDD设计', '第三方审定', '主管部门备案', '减排量核证', '资产签发']
+  return steps[step] || '未知阶段'
+}
+
+// 文档状态文本
+const getDocStatusText = (status) => {
   const statusMap = {
     'DRAFT': '草稿',
     'REVIEWING': '审核中',
@@ -280,13 +429,15 @@ const getStatusText = (status) => {
 }
 
 // 监听项目切换
-watch(currentProject, () => {
+watch(currentProjectIndex, () => {
   loadDocuments()
+  fileList.value = []
+  workData.value.baselineDescription = currentProject.value?.description || ''
 })
 
 // 初始加载
 onMounted(() => {
-  loadDocuments()
+  loadProjects()
 })
 </script>
 
@@ -310,4 +461,21 @@ onMounted(() => {
 .task-content { padding: 0 20px; }
 .document-list { margin-top: 30px; }
 .el-upload__tip { color: #909399; font-size: 12px; margin-top: 5px; }
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #909399;
+}
+.loading-container .el-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.empty-container {
+  padding: 20px 0;
+}
 </style>

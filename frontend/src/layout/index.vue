@@ -82,7 +82,7 @@
           <div class="search-box">
             <el-input
               placeholder="搜索功能..."
-              prefix-icon="Search"
+              :prefix-icon="Search"
               size="default"
               style="width: 200px"
             />
@@ -150,7 +150,7 @@
 import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
-import { HomeFilled, Monitor, User, Setting, SwitchButton, ArrowDown, Bell } from '@element-plus/icons-vue'
+import { HomeFilled, Monitor, User, Setting, SwitchButton, ArrowDown, Bell, Promotion, Fold, Expand, QuestionFilled, FullScreen, Search } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -189,9 +189,9 @@ const resolvePath = (route) => {
   return route.path
 }
 
-const logout = () => {
+const logout = async () => {
   // 清理用户信息
-  userStore.logout()
+  await userStore.logout()
   // 跳转到登录页
   router.push('/login')
 }
@@ -330,7 +330,7 @@ const logout = () => {
 }
 
 .collapse-btn {
-  font-size: 20px;
+  font-size: 28px;
   cursor: pointer;
   margin-right: 20px;
   color: #64748b;
@@ -368,7 +368,7 @@ const logout = () => {
 }
 
 .header-icon {
-  font-size: 20px;
+  font-size: 28px;
   cursor: pointer;
   color: #64748b;
   padding: 8px;

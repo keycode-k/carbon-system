@@ -376,9 +376,8 @@ const loadFlows = async () => {
   flowLoading.value = true
   try {
     const res = await request({ url: '/api/system/approval/flow/list', method: 'get', params: { page: 1, size: 100 } })
-    if (res.code === 200) {
-      flowList.value = res.data.records || []
-    }
+    // request.js 已经解包，返回的直接是 Page 对象
+    flowList.value = res.records || res.data?.records || []
   } catch (error) {
     console.error('加载流程失败:', error)
   } finally {
@@ -405,11 +404,9 @@ const handleEditFlow = (row) => {
 const handleDeleteFlow = async (row) => {
   try {
     await ElMessageBox.confirm(`确定要删除流程"${row.flowName}"吗？`, '提示', { type: 'warning' })
-    const res = await request({ url: `/api/system/approval/flow/${row.id}`, method: 'delete' })
-    if (res.code === 200) {
-      ElMessage.success('删除成功')
-      loadFlows()
-    }
+    await request({ url: `/api/system/approval/flow/${row.id}`, method: 'delete' })
+    ElMessage.success('删除成功')
+    loadFlows()
   } catch (error) {
     if (error !== 'cancel') console.error('删除失败:', error)
   }
@@ -420,15 +417,13 @@ const submitFlowForm = async () => {
   try {
     await flowFormRef.value?.validate()
     const isEdit = !!flowForm.id
-    const res = isEdit 
+    isEdit 
       ? await request({ url: '/api/system/approval/flow', method: 'put', data: flowForm })
       : await request({ url: '/api/system/approval/flow', method: 'post', data: flowForm })
     
-    if (res.code === 200) {
-      ElMessage.success(isEdit ? '更新成功' : '创建成功')
-      flowDialogVisible.value = false
-      loadFlows()
-    }
+    ElMessage.success(isEdit ? '更新成功' : '创建成功')
+    flowDialogVisible.value = false
+    loadFlows()
   } catch (error) {
     console.error('提交失败:', error)
   }
@@ -450,9 +445,8 @@ const handleConfigNodes = async (row) => {
   currentFlow.value = row
   try {
     const res = await request({ url: `/api/system/approval/flow/${row.id}/nodes`, method: 'get' })
-    if (res.code === 200) {
-      nodeList.value = res.data || []
-    }
+    // request.js 已经解包
+    nodeList.value = Array.isArray(res) ? res : (res.data || [])
   } catch (error) {
     nodeList.value = []
   }
@@ -484,15 +478,13 @@ const removeNode = (index) => {
 const saveNodes = async () => {
   if (!currentFlow.value) return
   try {
-    const res = await request({
+    await request({
       url: `/api/system/approval/flow/${currentFlow.value.id}/nodes`,
       method: 'post',
       data: nodeList.value
     })
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-      nodeDialogVisible.value = false
-    }
+    ElMessage.success('保存成功')
+    nodeDialogVisible.value = false
   } catch (error) {
     console.error('保存节点失败:', error)
   }
@@ -503,9 +495,8 @@ const loadPendingRecords = async () => {
   recordLoading.value = true
   try {
     const res = await request({ url: '/api/system/approval/pending', method: 'get' })
-    if (res.code === 200) {
-      pendingList.value = res.data || []
-    }
+    // request.js 已经解包，返回的直接是数据
+    pendingList.value = Array.isArray(res) ? res : (res.data || [])
   } catch (error) {
     console.error('加载待审批失败:', error)
   } finally {
@@ -518,9 +509,8 @@ const loadAppliedRecords = async () => {
   recordLoading.value = true
   try {
     const res = await request({ url: '/api/system/approval/my-applied', method: 'get', params: { page: 1, size: 50 } })
-    if (res.code === 200) {
-      appliedList.value = res.data.records || []
-    }
+    // request.js 已经解包，返回的直接是 Page 对象
+    appliedList.value = res.records || res.data?.records || []
   } catch (error) {
     console.error('加载我发起的审批失败:', error)
   } finally {
@@ -533,10 +523,9 @@ const loadAllRecords = async () => {
   recordLoading.value = true
   try {
     const res = await request({ url: '/api/system/approval/record/list', method: 'get', params: queryParams })
-    if (res.code === 200) {
-      allRecordList.value = res.data.records || []
-      recordTotal.value = res.data.total || 0
-    }
+    // request.js 已经解包，返回的直接是 Page 对象
+    allRecordList.value = res.records || res.data?.records || []
+    recordTotal.value = res.total || res.data?.total || 0
   } catch (error) {
     console.error('加载全部记录失败:', error)
   } finally {
@@ -549,10 +538,9 @@ const handleViewRecord = async (row) => {
   currentRecord.value = row
   try {
     const res = await request({ url: `/api/system/approval/record/${row.id}`, method: 'get' })
-    if (res.code === 200) {
-      currentRecord.value = res.data.record
-      approvalHistories.value = res.data.histories || []
-    }
+    // request.js 已经解包
+    currentRecord.value = res.record || res.data?.record || row
+    approvalHistories.value = res.histories || res.data?.histories || []
   } catch (error) {
     approvalHistories.value = []
   }
@@ -589,12 +577,10 @@ const submitApprove = async () => {
       ? `/api/system/approval/approve/${approveRecordId.value}`
       : `/api/system/approval/reject/${approveRecordId.value}`
     
-    const res = await request({ url, method: 'post', data: { comment: approveForm.comment } })
-    if (res.code === 200) {
-      ElMessage.success(approveAction.value === 'approve' ? '审批通过' : '已驳回')
-      approveDialogVisible.value = false
-      loadPendingRecords()
-    }
+    await request({ url, method: 'post', data: { comment: approveForm.comment } })
+    ElMessage.success(approveAction.value === 'approve' ? '审批通过' : '已驳回')
+    approveDialogVisible.value = false
+    loadPendingRecords()
   } catch (error) {
     console.error('审批失败:', error)
   }
@@ -604,11 +590,9 @@ const submitApprove = async () => {
 const handleWithdraw = async (row) => {
   try {
     await ElMessageBox.confirm('确定要撤回该审批申请吗？', '提示', { type: 'warning' })
-    const res = await request({ url: `/api/system/approval/withdraw/${row.id}`, method: 'post' })
-    if (res.code === 200) {
-      ElMessage.success('撤回成功')
-      loadAppliedRecords()
-    }
+    await request({ url: `/api/system/approval/withdraw/${row.id}`, method: 'post' })
+    ElMessage.success('撤回成功')
+    loadAppliedRecords()
   } catch (error) {
     if (error !== 'cancel') console.error('撤回失败:', error)
   }
