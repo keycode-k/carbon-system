@@ -18,6 +18,7 @@ public class SysOperationLog {
     /**
      * 操作用户ID
      */
+    @TableField("user_id")
     private Long userId;
     
     /**
@@ -33,6 +34,7 @@ public class SysOperationLog {
     /**
      * 操作类型（CREATE/UPDATE/DELETE/QUERY/LOGIN/LOGOUT/OTHER）
      */
+    @TableField("operation_type")
     private String operationType;
     
     /**
@@ -48,18 +50,19 @@ public class SysOperationLog {
     /**
      * 请求URL
      */
+    @TableField("request_url")
     private String requestUrl;
     
     /**
      * 请求参数
      */
-    @TableField(typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
+    @TableField(value = "request_params", typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
     private String requestParams;
     
     /**
      * 响应结果
      */
-    @TableField(typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
+    @TableField(value = "response_result", typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
     private String responseResult;
     
     /**
@@ -70,6 +73,7 @@ public class SysOperationLog {
     /**
      * 操作地点
      */
+    @TableField(exist = false)
     private String location;
     
     /**
@@ -90,6 +94,7 @@ public class SysOperationLog {
     /**
      * 错误信息
      */
+    @TableField("error_msg")
     private String errorMsg;
     
     /**
@@ -100,6 +105,6 @@ public class SysOperationLog {
     /**
      * 操作时间
      */
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }

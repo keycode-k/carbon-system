@@ -44,19 +44,22 @@ public class SysOperationLogService extends ServiceImpl<SysOperationLogMapper, S
     /**
      * 分页查询操作日志
      */
-    public Page<SysOperationLog> pageList(String username, String module, String operationType,
+    public Page<SysOperationLog> pageList(String username, String module, String operationType, Integer status,
                                           LocalDateTime startTime, LocalDateTime endTime,
                                           int page, int size) {
         LambdaQueryWrapper<SysOperationLog> query = new LambdaQueryWrapper<>();
         
-        if (username != null && !username.isEmpty()) {
+        if (username != null && !username.trim().isEmpty()) {
             query.like(SysOperationLog::getUsername, username);
         }
-        if (module != null && !module.isEmpty()) {
+        if (module != null && !module.trim().isEmpty()) {
             query.eq(SysOperationLog::getModule, module);
         }
-        if (operationType != null && !operationType.isEmpty()) {
+        if (operationType != null && !operationType.trim().isEmpty()) {
             query.eq(SysOperationLog::getOperationType, operationType);
+        }
+        if (status != null) {
+            query.eq(SysOperationLog::getStatus, status);
         }
         if (startTime != null) {
             query.ge(SysOperationLog::getCreateTime, startTime);

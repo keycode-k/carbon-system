@@ -34,6 +34,7 @@ public class SysOperationLogController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String module,
             @RequestParam(required = false) String operationType,
+            @RequestParam(required = false) Integer status,
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime,
             @RequestParam(defaultValue = "1") int page,
@@ -43,7 +44,7 @@ public class SysOperationLogController {
         LocalDateTime startDateTime = parseDateTime(startTime);
         LocalDateTime endDateTime = parseDateTime(endTime);
         
-        Page<SysOperationLog> result = logService.pageList(username, module, operationType, startDateTime, endDateTime, page, size);
+        Page<SysOperationLog> result = logService.pageList(username, module, operationType, status, startDateTime, endDateTime, page, size);
         return Result.success(result);
     }
     

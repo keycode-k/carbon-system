@@ -28,17 +28,7 @@ public class User {
      * 密码
      */
     private String password;
-    
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-    
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-    
+
     /**
      * 昵称
      */
@@ -54,11 +44,11 @@ public class User {
      * 手机号
      */
     private String phone;
-    
+
     public String getRealName() {
         return realName;
     }
-    
+
     public void setRealName(String realName) {
         this.realName = realName;
     }
@@ -72,11 +62,23 @@ public class User {
      * 个人简介
      */
     private String bio;
-    
+
     /**
      * 用户状态：0-禁用 1-启用
      */
     private Integer status;
+
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 
     // 构造方法
     public User() {
