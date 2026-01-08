@@ -23,6 +23,8 @@ public class CarbonCredit {
 
     private LocalDate issueDate;
 
+    private LocalDate expiryDate;  // 添加缺失的字段
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
@@ -84,6 +86,28 @@ public class CarbonCredit {
     public void setIssueDate(LocalDate issueDate) {
         this.issueDate = issueDate;
     }
-    
-    // Time fields often not needed for frontend display unless specifically requested
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
+
+    public LocalDateTime getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(LocalDateTime updateTime) {
+        this.updateTime = updateTime;
+    }
 }

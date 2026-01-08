@@ -1,6 +1,7 @@
 package com.example.consumer.feign;
 
 import com.example.common.model.Result;
+import com.example.consumer.config.FeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +10,7 @@ import java.util.Map;
 /**
  * 交易订单服务Feign客户端
  */
-@FeignClient(name = "service-trade", contextId = "tradeOrderFeignClient")
+@FeignClient(name = "service-trade", contextId = "tradeOrderFeignClient", configuration = FeignConfig.class)
 public interface TradeOrderFeignClient {
 
     /**

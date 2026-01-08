@@ -72,6 +72,11 @@ public class User {
      * 个人简介
      */
     private String bio;
+    
+    /**
+     * 用户状态：0-禁用 1-启用
+     */
+    private Integer status;
 
     // 构造方法
     public User() {
@@ -153,5 +158,13 @@ public class User {
 
     public void setBio(String bio) {
         this.bio = bio;
+    }
+    
+    public Integer getStatus() {
+        return status;
+    }
+    
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

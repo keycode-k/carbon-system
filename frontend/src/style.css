@@ -1,6 +1,48 @@
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --el-color-primary: #409eff;
+  /* 主色调 - 碳绿色系 */
+  --el-color-primary: #10b981;
+  --el-color-primary-light-3: #34d399;
+  --el-color-primary-light-5: #6ee7b7;
+  --el-color-primary-light-7: #a7f3d0;
+  --el-color-primary-light-9: #d1fae5;
+  --el-color-primary-dark-2: #059669;
+  
+  /* 自定义变量 */
+  --carbon-primary: #10b981;
+  --carbon-secondary: #3b82f6;
+  --carbon-success: #22c55e;
+  --carbon-warning: #f59e0b;
+  --carbon-danger: #ef4444;
+  --carbon-info: #6366f1;
+  
+  /* 背景色 */
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-dark: #1e293b;
+  --bg-sidebar: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  
+  /* 文字颜色 */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  
+  /* 边框和阴影 */
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  /* 字体 */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 html, body {
@@ -8,12 +50,16 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   width: 100%;
   height: 100%;
-  display: block; /* 覆盖可能存在的flex设置 */
+  display: block;
 }
 
 /* Reset */
@@ -31,3 +77,196 @@ ul, li {
   margin: 0;
   padding: 0;
 }
+
+/* 全局滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Element Plus 卡片优化 */
+.el-card {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.3s ease !important;
+}
+
+.el-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Element Plus 按钮优化 */
+.el-button {
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--carbon-primary) 0%, #059669 100%) !important;
+  border: none !important;
+}
+
+.el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+.el-button--success {
+  background: linear-gradient(135deg, var(--carbon-success) 0%, #16a34a 100%) !important;
+  border: none !important;
+}
+
+.el-button--warning {
+  background: linear-gradient(135deg, var(--carbon-warning) 0%, #d97706 100%) !important;
+  border: none !important;
+}
+
+.el-button--danger {
+  background: linear-gradient(135deg, var(--carbon-danger) 0%, #dc2626 100%) !important;
+  border: none !important;
+}
+
+/* Element Plus 表格优化 */
+.el-table {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+
+.el-table th.el-table__cell {
+  background-color: #f8fafc !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: #fafbfc !important;
+}
+
+.el-table__row:hover > td.el-table__cell {
+  background-color: #f0fdf4 !important;
+}
+
+/* Element Plus 标签优化 */
+.el-tag {
+  border-radius: 20px !important;
+  font-weight: 500 !important;
+}
+
+/* Element Plus 输入框优化 */
+.el-input__wrapper {
+  border-radius: var(--radius-sm) !important;
+  transition: all 0.2s ease !important;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--carbon-primary) inset !important;
+}
+
+/* Element Plus 对话框优化 */
+.el-dialog {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.el-dialog__header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px 24px !important;
+}
+
+.el-dialog__title {
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+/* 页面容器通用样式 */
+.app-container {
+  padding: 24px;
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 骨架屏动画 */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* 悬浮动画 */
+.hover-float {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-float:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 渐变文字 */
+.gradient-text {
+  background: linear-gradient(135deg, var(--carbon-primary) 0%, var(--carbon-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 玻璃拟态效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+

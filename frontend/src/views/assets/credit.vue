@@ -119,27 +119,30 @@ const userStore = useUserStore()
 
 const fetchData = async () => {
     loading.value = true
-    const token = localStorage.getItem('token')
-    if (!token) {
-       // ElMessage.warning('请先登录')
-       loading.value = false
-       return
-    }
     
     try {
-        // 从store获取userId
-        const userId = userStore.userId || 1
+        // 优先从 store，其次 localStorage，最后默认 1
+        const userId = userStore.userId || localStorage.getItem('userId') || 1
+        console.log('Loading credits for userId:', userId)
+        
         const res = await getCreditList(userId)
-        if (res && res.length !== undefined) {
-             // If response is the list directly (due to request interceptor processing)
-             tableData.value = res
-        } else if (res && res.code === 200) {
-            tableData.value = res.data || []
-        } else if (Array.isArray(res)) {
-             tableData.value = res
+        console.log('Credit API response:', res)
+        
+        // 处理各种返回格式
+        if (Array.isArray(res)) {
+            tableData.value = res
+        } else if (res && res.data && Array.isArray(res.data)) {
+            tableData.value = res.data
+        } else if (res && res.length !== undefined) {
+            tableData.value = res
+        } else {
+            tableData.value = []
+            console.warn('Unexpected response format:', res)
         }
     } catch (e) {
-        console.error(e)
+        console.error('加载碳信用数据失败:', e)
+        ElMessage.error('加载数据失败，请刷新重试')
+        tableData.value = []
     } finally {
         loading.value = false
     }

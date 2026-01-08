@@ -9,11 +9,15 @@ import com.example.consumer.feign.CarbonCreditFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 仪表盘控制器 - 汇总各服务统计数据
+ * 优化：使用并行调用提升响应速度
  */
 @RestController
 @RequestMapping("/api/dashboard")
@@ -36,74 +40,71 @@ public class DashboardController {
 
     /**
      * 获取仪表盘汇总数据
-     * 返回：用户总数、企业认证数、碳资产总量、交易总额、待办事项数
+     * 使用 CompletableFuture 并行调用各个服务，大幅提升响应速度
      */
     @GetMapping("/summary")
     public Result<Map<String, Object>> getSummary(@RequestParam(required = false, defaultValue = "1") Long userId) {
         try {
             Map<String, Object> summary = new HashMap<>();
+            
+            // 并行调用各个服务
+            CompletableFuture<Long> pendingCountFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    Result<Long> result = companyInfoFeignClient.getPendingCount();
+                    return result != null && result.getData() != null ? result.getData() : 0L;
+                } catch (Exception e) {
+                    return 0L;
+                }
+            });
 
-            // 1. 获取用户总数 (模拟：后续可通过 UserFeignClient 调用统计接口)
+            CompletableFuture<BigDecimal> quotaFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    Result<BigDecimal> result = carbonQuotaFeignClient.getTotalQuota(userId);
+                    return result != null && result.getData() != null ? result.getData() : BigDecimal.ZERO;
+                } catch (Exception e) {
+                    return BigDecimal.ZERO;
+                }
+            });
+
+            CompletableFuture<BigDecimal> creditFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    Result<BigDecimal> result = carbonCreditFeignClient.getTotalCredit(userId);
+                    return result != null && result.getData() != null ? result.getData() : BigDecimal.ZERO;
+                } catch (Exception e) {
+                    return BigDecimal.ZERO;
+                }
+            });
+
+            CompletableFuture<BigDecimal> todayTradeFuture = CompletableFuture.supplyAsync(() -> {
+                try {
+                    Result<BigDecimal> result = tradeOrderFeignClient.getTodayTradeAmount(userId);
+                    return result != null && result.getData() != null ? result.getData() : BigDecimal.ZERO;
+                } catch (Exception e) {
+                    return BigDecimal.ZERO;
+                }
+            });
+
+            // 等待所有异步任务完成（最多等待5秒）
+            CompletableFuture.allOf(pendingCountFuture, quotaFuture, creditFuture, todayTradeFuture)
+                    .orTimeout(5, TimeUnit.SECONDS)
+                    .exceptionally(ex -> null)
+                    .join();
+
+            // 获取结果
+            Long pendingCount = pendingCountFuture.getNow(0L);
+            BigDecimal totalQuota = quotaFuture.getNow(BigDecimal.ZERO);
+            BigDecimal totalCredit = creditFuture.getNow(BigDecimal.ZERO);
+            BigDecimal todayTradeAmount = todayTradeFuture.getNow(BigDecimal.ZERO);
+
+            // 组装数据
             summary.put("totalUsers", 128);
-
-            // 2. 获取企业认证数 (调用待审核企业数量接口)
-            try {
-                Result<Long> pendingResult = companyInfoFeignClient.getPendingCount();
-                summary.put("certifiedCompanies", pendingResult != null && pendingResult.getData() != null ? pendingResult.getData() : 0L);
-            } catch (Exception e) {
-                summary.put("certifiedCompanies", 0L);
-            }
-
-            // 3. 获取碳资产总量 (碳配额 + CCER) - 使用真实数据
-            java.math.BigDecimal totalQuota = java.math.BigDecimal.ZERO;
-            java.math.BigDecimal totalCredit = java.math.BigDecimal.ZERO;
-            
-            try {
-                Result<java.math.BigDecimal> quotaResult = carbonQuotaFeignClient.getTotalQuota(userId);
-                if (quotaResult != null && quotaResult.getData() != null) {
-                    totalQuota = quotaResult.getData();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            
-            try {
-                Result<java.math.BigDecimal> creditResult = carbonCreditFeignClient.getTotalCredit(userId);
-                if (creditResult != null && creditResult.getData() != null) {
-                    totalCredit = creditResult.getData();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            
+            summary.put("certifiedCompanies", pendingCount);
             summary.put("totalQuota", totalQuota);
             summary.put("totalCredit", totalCredit);
             summary.put("totalAssets", totalQuota.add(totalCredit));
-
-            // 4. 获取交易总额 (今日) - 使用真实数据
-            try {
-                Result<java.math.BigDecimal> todayResult = tradeOrderFeignClient.getTodayTradeAmount(userId);
-                if (todayResult != null && todayResult.getData() != null) {
-                    summary.put("todayTradeAmount", todayResult.getData());
-                } else {
-                    summary.put("todayTradeAmount", java.math.BigDecimal.ZERO);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                summary.put("todayTradeAmount", java.math.BigDecimal.ZERO);
-            }
-            
-            summary.put("totalTradeAmount", 0.00); // 累计交易额暂时保留，后续可扩展
-
-            // 5. 获取待办事项数 (待审批企业数)
-            try {
-                Result<Long> pendingResult = companyInfoFeignClient.getPendingCount();
-                summary.put("pendingTasks", pendingResult != null && pendingResult.getData() != null ? pendingResult.getData() : 0L);
-            } catch (Exception e) {
-                summary.put("pendingTasks", 0L);
-            }
-
-            // 6. 系统运行状态
+            summary.put("todayTradeAmount", todayTradeAmount);
+            summary.put("totalTradeAmount", BigDecimal.ZERO);
+            summary.put("pendingTasks", pendingCount);
             summary.put("systemStatus", "正常运行");
             summary.put("lastUpdateTime", System.currentTimeMillis());
 

@@ -7,11 +7,20 @@ CREATE TABLE IF NOT EXISTS `user` (
   `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号',
   `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
   `bio` VARCHAR(500) DEFAULT NULL COMMENT '个人简介',
+  `status` INT(1) DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
+-- 插入默认管理员用户 (密码: 123456，已BCrypt加密)
+INSERT IGNORE INTO `user` (`id`, `username`, `password`, `nickname`, `status`) 
+VALUES (1, 'admin', '$2a$10$N.zmdrOCnB5YJHqJq1Qn0.T.Z.kB5G5RDzX1qpMGRJb5F/5.Y3Eki', '系统管理员', 1);
+
+-- 插入测试用户 (密码: 123456)
+INSERT IGNORE INTO `user` (`id`, `username`, `password`, `nickname`, `status`) 
+VALUES (2, 'test', '$2a$10$N.zmdrOCnB5YJHqJq1Qn0.T.Z.kB5G5RDzX1qpMGRJb5F/5.Y3Eki', '测试用户', 1);
 
 -- 创建碳配额表 (Moved to service-assets)
 -- CREATE TABLE IF NOT EXISTS `carbon_quota` ...

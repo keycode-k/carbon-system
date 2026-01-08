@@ -36,18 +36,19 @@ public class UserController {
     
     /**
      * 获取用户信息
+     * 从请求头获取Authorization，转发给service-provider
      */
     @GetMapping("/info")
-    public Result<User> info(@RequestParam("token") String token) {
-        return userFeignClient.getUserInfo(token);
+    public Result<Map<String, Object>> info(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        return userFeignClient.getUserInfo(authHeader);
     }
 
     /**
      * 用户登出接口
      */
     @PostMapping("/logout")
-    public Result<Object> logout(@RequestParam String token) {
-        return userFeignClient.logout(token);
+    public Result<Object> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        return userFeignClient.logout(authHeader);
     }
 
     /**

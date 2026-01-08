@@ -113,9 +113,9 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio label="ACTIVE">有效</el-radio>
-            <el-radio label="DRAFT">草案</el-radio>
-            <el-radio label="DEPRECATED">已废弃</el-radio>
+            <el-radio value="ACTIVE">有效</el-radio>
+            <el-radio value="DRAFT">草案</el-radio>
+            <el-radio value="DEPRECATED">已废弃</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="方法学描述">

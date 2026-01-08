@@ -1,8 +1,10 @@
 package com.example.trade.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.example.common.model.Result;
 import com.example.trade.entity.TradeOrder;
 import com.example.trade.entity.TradeRecord;
+import com.example.trade.feign.AssetFeignClient;
 import com.example.trade.mapper.TradeOrderMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class TradeMatchService {
     
     @Autowired
     private TradeRecordService tradeRecordService;
+    
+    @Autowired(required = false)
+    private AssetFeignClient assetFeignClient;
     
     @Autowired(required = false)
     private RestTemplate restTemplate;
@@ -238,10 +243,66 @@ public class TradeMatchService {
                 log.error("卖方增加余额失败：userId={}, amount={}", sellOrder.getUserId(), totalAmount);
             }
             
-            // 3. 更新资产持仓（需要通过HTTP调用service-assets）
-            // 这里暂时简化处理，实际应该根据assetType调用不同的API
-            log.info("TODO: 更新资产持仓 - 买方增加 {} 数量={}, 卖方减少 {} 数量={}", 
-                     buyOrder.getItemType(), quantity, sellOrder.getItemType(), quantity);
+            // 3. 更新资产持仓（通过Feign调用service-assets）
+            if (assetFeignClient != null) {
+                String assetType = buyOrder.getItemType();
+                
+                if ("QUOTA".equals(assetType)) {
+                    // 碳配额交易：使用当前年份
+                    int currentYear = LocalDateTime.now().getYear();
+                    
+                    // 买方增加配额
+                    Result<String> buyerResult = assetFeignClient.updateQuotaQuantity(
+                            buyOrder.getUserId(), currentYear, quantity);
+                    if (buyerResult != null && buyerResult.getCode() == 200) {
+                        log.info("买方配额增加成功：userId={}, year={}, quantity={}", 
+                                 buyOrder.getUserId(), currentYear, quantity);
+                    } else {
+                        log.error("买方配额增加失败：userId={}, result={}", 
+                                  buyOrder.getUserId(), buyerResult != null ? buyerResult.getMessage() : "null");
+                    }
+                    
+                    // 卖方减少配额
+                    Result<String> sellerResult = assetFeignClient.updateQuotaQuantity(
+                            sellOrder.getUserId(), currentYear, quantity.negate());
+                    if (sellerResult != null && sellerResult.getCode() == 200) {
+                        log.info("卖方配额减少成功：userId={}, year={}, quantity={}", 
+                                 sellOrder.getUserId(), currentYear, quantity.negate());
+                    } else {
+                        log.error("卖方配额减少失败：userId={}, result={}", 
+                                  sellOrder.getUserId(), sellerResult != null ? sellerResult.getMessage() : "null");
+                    }
+                } else if ("CREDIT".equals(assetType)) {
+                    // 碳信用交易：需要项目ID（这里使用itemId字段）
+                    Long projectId = sellOrder.getItemId();
+                    
+                    if (projectId != null) {
+                        // 买方增加碳信用（先从卖方转移到买方名下）
+                        // 注意：碳信用是按项目管理的，交易后需要创建新的持仓记录或更新现有持仓
+                        log.info("碳信用交易：买方userId={}, 卖方userId={}, projectId={}, quantity={}", 
+                                 buyOrder.getUserId(), sellOrder.getUserId(), projectId, quantity);
+                        
+                        // 卖方减少碳信用
+                        Result<String> sellerResult = assetFeignClient.updateCreditQuantity(
+                                sellOrder.getUserId(), projectId, quantity.negate());
+                        if (sellerResult != null && sellerResult.getCode() == 200) {
+                            log.info("卖方碳信用减少成功：userId={}, projectId={}, quantity={}", 
+                                     sellOrder.getUserId(), projectId, quantity.negate());
+                        } else {
+                            log.error("卖方碳信用减少失败：userId={}, result={}", 
+                                      sellOrder.getUserId(), sellerResult != null ? sellerResult.getMessage() : "null");
+                        }
+                        
+                        // TODO: 买方需要创建新的碳信用持仓记录
+                        log.info("TODO: 为买方创建碳信用持仓记录 - userId={}, projectId={}, quantity={}", 
+                                 buyOrder.getUserId(), projectId, quantity);
+                    } else {
+                        log.warn("碳信用交易缺少项目ID：sellOrderId={}", sellOrder.getId());
+                    }
+                }
+            } else {
+                log.warn("AssetFeignClient未注入，跳过资产持仓更新");
+            }
             
         } catch (Exception e) {
             log.error("更新账户余额和资产持仓失败", e);

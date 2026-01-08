@@ -12,9 +12,23 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 132.226.64.96:8848
+        server-addr: 45.153.245.177:8848
         username: nacos
         password: nacos
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 10000
+            read-timeout: 15000
+            logger-level: basic
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+      circuitbreaker:
+        enabled: false
   http:
     encoding:
       charset: UTF-8

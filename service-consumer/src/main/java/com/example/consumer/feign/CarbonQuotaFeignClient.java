@@ -1,6 +1,7 @@
 package com.example.consumer.feign;
 
 import com.example.common.model.Result;
+import com.example.consumer.config.FeignConfig;
 import com.example.consumer.entity.CarbonQuota;
 import com.example.consumer.entity.CarbonQuotaDetail;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "service-assets", contextId = "carbonQuotaFeignClient")
+@FeignClient(name = "service-assets", contextId = "carbonQuotaFeignClient", configuration = FeignConfig.class)
 public interface CarbonQuotaFeignClient {
 
     @GetMapping("/api/assets/quota/get")

@@ -2,10 +2,10 @@
   <div class="app-container">
     <el-row :gutter="20">
       <el-col :span="8">
-        <el-card class="box-card" shadow="hover">
+        <el-card class="box-card" shadow="hover" v-loading="loadingInfo">
           <div class="user-header">
             <el-avatar :size="100" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-            <h2 class="user-name">{{ username }}</h2>
+            <h2 class="user-name">{{ username || '加载中...' }}</h2>
             <p class="user-role">注册用户</p>
             <div class="user-tags">
               <el-tag size="small">普通权限</el-tag>
@@ -23,6 +23,15 @@
                <el-progress :percentage="completionScore" />
              </div>
           </div>
+          <!-- 加载失败时显示重试按钮 -->
+          <div v-if="loadError" class="error-retry">
+            <el-alert title="数据加载失败" type="error" :closable="false" show-icon>
+              <template #default>
+                <p>{{ loadError }}</p>
+                <el-button type="primary" size="small" @click="retryLoad">重新加载</el-button>
+              </template>
+            </el-alert>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="16">
@@ -34,7 +43,7 @@
           </template>
           <el-tabs v-model="activeTab">
             <el-tab-pane label="基本信息" name="basic">
-              <el-form label-width="100px" style="max-width: 500px; margin-top: 20px">
+              <el-form label-width="100px" style="max-width: 500px; margin-top: 20px" v-loading="loadingInfo">
                 <el-form-item label="用户名">
                   <el-input v-model="username" disabled />
                 </el-form-item>
@@ -124,6 +133,10 @@ const totalCredit = ref(0)
 const activeTab = ref('basic')
 const securityScore = ref(65)
 const completionScore = ref(30)
+const loadingInfo = ref(false)
+const loadingAssets = ref(false)
+const loadError = ref('')
+
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
@@ -185,17 +198,22 @@ const handleDeleteAccount = async () => {
 }
 
 const fetchUserInfo = async () => {
-    // 假设token存储在 localStorage 或 cookie 中，这里简化处理
-    // 实际项目中应该从 Pinia userStore 中获取
-    const token = localStorage.getItem('token') 
-    if (!token) return
+    // 优先从store获取，再从localStorage获取
+    const token = userStore.token || localStorage.getItem('token') 
+    if (!token) {
+        loadError.value = '未登录，请先登录'
+        return
+    }
 
+    loadingInfo.value = true
+    loadError.value = ''
+    
     try {
-        const res = await getUserInfo(token)
+        const res = await getUserInfo()
         if (res) {
             username.value = res.username
-            form.id = res.id
-            form.nickname = res.nickname // Use nickname as per DB schema
+            form.id = res.id || res.userId
+            form.nickname = res.nickname
             form.phone = res.phone
             form.email = res.email
             form.bio = res.bio || '这家伙很懒，什么都没留下' 
@@ -209,36 +227,89 @@ const fetchUserInfo = async () => {
             completionScore.value = score
         }
     } catch (err) {
-        console.error(err)
+        console.error('获取用户信息失败:', err)
+        loadError.value = err.message || '网络请求失败，请稍后重试'
+        
+        // 如果 store 中有缓存的用户信息，使用缓存
+        if (userStore.username) {
+            username.value = userStore.username
+            form.nickname = userStore.nickname || ''
+        }
+    } finally {
+        loadingInfo.value = false
     }
 }
 
 const fetchAssets = async () => {
+    loadingAssets.value = true
     try {
-        // 优先从 store 获取 userId，其次从 form，最后使用默认值
-        const userId = userStore.userId || form.id || 1
+        // 获取 userId - 确保是数字
+        let userId = userStore.userId || form.id || localStorage.getItem('userId')
+        if (userId) {
+            userId = parseInt(userId)
+        } else {
+            userId = 1 // 默认值
+        }
+        console.log('Fetching assets for userId:', userId, typeof userId)
         
-        const quotas = await listQuotas(userId)
+        // 并行获取配额和信用数据
+        const [quotaRes, creditRes] = await Promise.allSettled([
+            listQuotas(userId),
+            getCreditList(userId)
+        ])
+        
+        // 处理配额数据
         let qTotal = 0
-        if (quotas && Array.isArray(quotas)) {
-            qTotal = quotas.reduce((sum, q) => sum + (q.totalQuota || 0), 0)
+        if (quotaRes.status === 'fulfilled' && quotaRes.value) {
+            const quotas = quotaRes.value
+            console.log('Quota response:', quotas)
+            const quotaArray = Array.isArray(quotas) ? quotas : (quotas?.data || [])
+            qTotal = quotaArray.reduce((sum, q) => {
+                const val = parseFloat(q.totalQuota) || 0
+                return sum + val
+            }, 0)
+        } else {
+            console.error('获取配额失败:', quotaRes.reason)
         }
         totalQuota.value = qTotal
 
-        const credits = await getCreditList(userId)
+        // 处理信用数据
         let cTotal = 0
-        // Handle result wrapper if any
-        const creditArray = (credits && Array.isArray(credits)) ? credits : (credits?.data || [])
-        if (Array.isArray(creditArray)) {
-            cTotal = creditArray.reduce((sum, c) => sum + (c.amount || 0), 0)
+        if (creditRes.status === 'fulfilled' && creditRes.value) {
+            const credits = creditRes.value
+            console.log('Credit response:', credits)
+            const creditArray = Array.isArray(credits) ? credits : (credits?.data || [])
+            cTotal = creditArray.reduce((sum, c) => {
+                const val = parseFloat(c.amount) || 0
+                return sum + val
+            }, 0)
+        } else {
+            console.error('获取信用失败:', creditRes.reason)
         }
         totalCredit.value = cTotal
+        
+        console.log('Final - Total Quota:', totalQuota.value, 'Total Credit:', totalCredit.value)
     } catch (e) {
-        console.error("Failed to fetch assets", e)
+        console.error("获取资产信息失败:", e)
+    } finally {
+        loadingAssets.value = false
     }
 }
 
+// 重试加载
+const retryLoad = async () => {
+    await fetchUserInfo()
+    await fetchAssets()
+}
+
 onMounted(async () => {
+    // 先从缓存显示基本信息
+    if (userStore.username) {
+        username.value = userStore.username
+        form.nickname = userStore.nickname || ''
+    }
+    
+    // 再从API获取最新信息
     await fetchUserInfo()
     await fetchAssets()
 })
@@ -253,6 +324,14 @@ onMounted(async () => {
 .progress-item { margin-bottom: 15px; }
 .progress-item span { display: block; margin-bottom: 5px; color: #606266; font-size: 14px; }
 .danger-zone { padding: 10px; color: #F56C6C; }
+.error-retry { 
+  margin-top: 20px; 
+  padding: 10px; 
+}
+.error-retry p { 
+  margin: 0 0 10px 0; 
+  font-size: 13px; 
+}
 </style>
 
 <style scoped>

@@ -21,6 +21,12 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 // 异步初始化：先恢复登录状态，再挂载应用
 ;(async () => {
   const userStore = useUserStore()
-  await userStore.restoreLoginState()
+  
+  // 设置超时，防止恢复状态阻塞应用启动
+  const restorePromise = userStore.restoreLoginState()
+  const timeoutPromise = new Promise(resolve => setTimeout(resolve, 3000))
+  
+  await Promise.race([restorePromise, timeoutPromise])
+  
   app.mount('#app')
 })()

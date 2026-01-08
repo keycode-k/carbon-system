@@ -18,8 +18,8 @@
         </processorPath>
         <module name="service-development" />
         <module name="service-assets" />
-        <module name="service-consumer" />
         <module name="service-news" />
+        <module name="service-consumer" />
         <module name="service-provider" />
         <module name="service-trade" />
         <module name="carbon-common" />

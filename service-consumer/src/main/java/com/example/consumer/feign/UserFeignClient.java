@@ -1,12 +1,14 @@
 package com.example.consumer.feign;
 
 import com.example.common.model.Result;
+import com.example.consumer.config.FeignConfig;
 import com.example.consumer.entity.User;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
@@ -14,7 +16,7 @@ import java.util.Map;
 /**
  * 用户服务Feign客户端
  */
-@FeignClient(name = "service-provider", contextId = "userFeignClient")
+@FeignClient(name = "service-provider", contextId = "userFeignClient", configuration = FeignConfig.class)
 public interface UserFeignClient {
 
     @PostMapping("/api/user/register")
@@ -24,10 +26,10 @@ public interface UserFeignClient {
     Result<Map<String, Object>> login(@RequestBody User user);
 
     @PostMapping("/api/user/logout")
-    Result<Object> logout(@RequestParam("token") String token);
+    Result<Object> logout(@RequestHeader(value = "Authorization", required = false) String authHeader);
     
     @GetMapping("/api/user/info")
-    Result<User> getUserInfo(@RequestParam("token") String token);
+    Result<Map<String, Object>> getUserInfo(@RequestHeader(value = "Authorization", required = false) String authHeader);
 
     @PostMapping("/api/user/update")
     Result<User> updateUser(@RequestBody User user);

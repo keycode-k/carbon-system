@@ -153,6 +153,30 @@ const routes = [
     meta: { title: '系统管理', icon: 'Setting' },
     children: [
       {
+        path: 'user',
+        name: 'SysUser',
+        component: () => import('@/views/system/user.vue'),
+        meta: { title: '用户管理' }
+      },
+      {
+        path: 'role',
+        name: 'SysRole',
+        component: () => import('@/views/system/role.vue'),
+        meta: { title: '角色管理' }
+      },
+      {
+        path: 'menu',
+        name: 'SysMenu',
+        component: () => import('@/views/system/menu.vue'),
+        meta: { title: '菜单管理' }
+      },
+      {
+        path: 'dict',
+        name: 'SysDict',
+        component: () => import('@/views/system/dict.vue'),
+        meta: { title: '字典管理' }
+      },
+      {
         path: 'operation',
         name: 'SysOperation',
         component: () => import('@/views/system/operation.vue'),

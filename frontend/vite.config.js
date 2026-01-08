@@ -21,6 +21,10 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true
       },
+      '/api/system': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
       '/api/trade': {
         target: 'http://localhost:8084',
         changeOrigin: true
