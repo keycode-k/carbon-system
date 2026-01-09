@@ -12,9 +12,9 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 45.153.245.177:8848
-        username: nacos
-        password: nacos
+        server-addr: 
+        username: 
+        password: 
   http:
     encoding:
       charset: UTF-8
@@ -22,9 +22,9 @@ spring:
       force: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://45.153.245.177:3306/carbondate?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&autoReconnect=true&maxReconnects=3&initialTimeout=10&connectTimeout=60000&socketTimeout=300000&allowPublicKeyRetrieval=true
-    username: xueerze
-    password: 123456
+    url: jdbc:mysql://:3306/carbondate?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&autoReconnect=true&maxReconnects=3&initialTimeout=10&connectTimeout=60000&socketTimeout=300000&allowPublicKeyRetrieval=true
+    username: 
+    password: 
     hikari:
       connection-timeout: 60000
       idle-timeout: 600000
@@ -36,9 +36,9 @@ spring:
       keepalive-time: 300000
   data:
     redis:
-      host: 45.153.245.177
-      port: 6379
-      password: 20041122@goodER
+      host: 
+      port: 
+      password: 
       database: 0
       timeout: 5000
       lettuce:
