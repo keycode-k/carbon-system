@@ -12,9 +12,9 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 45.153.245.177:8848
-        username: nacos
-        password: nacos
+        server-addr: :8848
+        username: 
+        password: 
     openfeign:
       client:
         config:
