@@ -1,8 +1,10 @@
 package com.example.assets.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,22 +18,33 @@ public class CarbonCredit {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    @TableField("user_id")
     private Long userId;
 
+    @TableField("project_name")
     private String projectName;
 
+    @TableField("project_type")
     private String projectType;
 
     private BigDecimal amount;
 
-    private Integer status; // 0-持有中 1-已冻结 2-已注销/使用
+    private Integer status; // 0-持有中 1-交易中 2-已注销
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @TableField("issue_date")
     private LocalDate issueDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @TableField("expiry_date")
     private LocalDate expiryDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("create_time")
     private LocalDateTime createTime;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @TableField("update_time")
     private LocalDateTime updateTime;
 
     // Getters and Setters

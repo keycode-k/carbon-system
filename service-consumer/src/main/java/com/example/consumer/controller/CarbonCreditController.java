@@ -20,4 +20,9 @@ public class CarbonCreditController {
         // 直接使用 userId 查询
         return carbonCreditFeignClient.listByUserId(userId);
     }
+    
+    @PostMapping("/create")
+    public Result<CarbonCredit> createCredit(@RequestBody CarbonCredit credit) {
+        return carbonCreditFeignClient.createCredit(credit);
+    }
 }

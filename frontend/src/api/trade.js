@@ -134,6 +134,7 @@ export function getQuoteDetail(id) {
  * 发布询价单
  */
 export function publishQuote(data) {
+  // 使用前端代理配置
   return request({
     url: '/api/trade/quotes/publish',
     method: 'post',

@@ -27,6 +27,10 @@ service.interceptors.request.use(
       // 在请求头中添加Authorization
       config.headers['Authorization'] = `Bearer ${userStore.token}`
     }
+    // 确保 Content-Type 为 application/json
+    if (!config.headers['Content-Type']) {
+      config.headers['Content-Type'] = 'application/json'
+    }
     // 初始化重试计数
     config.__retryCount = config.__retryCount || 0
     return config

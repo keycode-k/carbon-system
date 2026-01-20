@@ -31,3 +31,27 @@ export function getQuotaDetails(quotaId) {
     params: { quotaId }
   })
 }
+
+export function createCredit(creditData) {
+  return request({
+    url: '/api/assets/credit/create',
+    method: 'post',
+    data: creditData
+  })
+}
+
+export function listCredit(id) {
+  return request({
+    url: '/api/assets/credit/list',
+    method: 'post',
+    params: { id }
+  })
+}
+
+export function retireCredit(id) {
+  return request({
+    url: '/api/assets/credit/retire',
+    method: 'post',
+    params: { id }
+  })
+}

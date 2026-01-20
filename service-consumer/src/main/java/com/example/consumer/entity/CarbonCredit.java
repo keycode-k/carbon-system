@@ -19,7 +19,7 @@ public class CarbonCredit {
 
     private BigDecimal amount;
 
-    private Integer status; // 0-持有中 1-已冻结 2-已注销/使用
+    private Integer status; // 0-持有中 1-交易中 2-已注销
 
     private LocalDate issueDate;
 

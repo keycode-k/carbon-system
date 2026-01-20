@@ -186,7 +186,7 @@
             v-model="publishForm.validUntil"
             type="datetime"
             placeholder="选择有效期"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ssZ"
             class="full-width"
           />
         </el-form-item>
@@ -348,13 +348,39 @@ const showPublishDialog = () => {
 const handlePublish = async () => {
   publishLoading.value = true
   try {
-    await publishQuote(publishForm.value)
+    // 使用用户选择的实际数据，确保所有字段类型正确
+    const publishData = {
+      userId: 1, // 保持 camelCase，后端API期望此格式
+      type: publishForm.value.type || "BUY", // 确保有默认值
+      assetType: publishForm.value.assetType || "QUOTA", // 保持 camelCase，后端API期望此格式
+      quantity: publishForm.value.quantity.toString(), // 转换为字符串，确保格式正确
+      expectPrice: publishForm.value.expectPrice.toString(), // 保持 camelCase，后端API期望此格式
+      validUntil: publishForm.value.validUntil || null, // 确保非空值或明确为null
+      remark: publishForm.value.remark || "" // 使用表单中的备注
+    }
+    
+    console.log('发布询价数据:', publishData)
+    console.log('数据类型检查:')
+    console.log('userId:', publishData.userId, '类型:', typeof publishData.userId)
+    console.log('type:', publishData.type, '类型:', typeof publishData.type)
+    console.log('assetType:', publishData.assetType, '类型:', typeof publishData.assetType)
+    console.log('quantity:', publishData.quantity, '类型:', typeof publishData.quantity)
+    console.log('expectPrice:', publishData.expectPrice, '类型:', typeof publishData.expectPrice)
+    console.log('validUntil:', publishData.validUntil, '类型:', typeof publishData.validUntil)
+    console.log('remark:', publishData.remark, '类型:', typeof publishData.remark)
+    
+    // 显示原始表单数据
+    console.log('原始表单数据:', publishForm.value)
+    
+    await publishQuote(publishData)
     ElMessage.success('发布成功')
     publishDialogVisible.value = false
     loadQuotes()
   } catch (error) {
     console.error('发布失败:', error)
-    ElMessage.error('发布失败')
+    console.error('错误详情:', error.response?.data || error.message)
+    console.error('错误配置:', error.config)
+    ElMessage.error('发布失败：' + (error.message || '未知错误'))
   } finally {
     publishLoading.value = false
   }

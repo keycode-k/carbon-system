@@ -1,4 +1,4 @@
-﻿-- 创建碳配额表
+﻿﻿﻿﻿﻿﻿﻿﻿-- 创建碳配额表
 CREATE TABLE IF NOT EXISTS `carbon_quota` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `user_id` BIGINT(20) NOT NULL COMMENT '所属用户ID',
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `carbon_credit` (
   `project_name` VARCHAR(255) DEFAULT NULL COMMENT '项目名称',
   `project_type` VARCHAR(50) DEFAULT NULL COMMENT '项目类型(如: 风电, 光伏, 林业)',
   `amount` DECIMAL(20, 2) DEFAULT 0.00 COMMENT '持有数量(tCO2e)',
-  `status` TINYINT(1) DEFAULT 0 COMMENT '状态 0-持有中 1-已冻结 2-已注销/使用',
+  `status` TINYINT(1) DEFAULT 0 COMMENT '状态 0-持有中 1-交易中 2-已注销',
   `issue_date` DATE DEFAULT NULL COMMENT '签发日期',
   `expiry_date` DATE DEFAULT NULL COMMENT '有效期',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
