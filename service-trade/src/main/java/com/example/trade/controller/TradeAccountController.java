@@ -2,11 +2,14 @@ package com.example.trade.controller;
 
 import com.example.common.model.Result;
 import com.example.trade.entity.TradeAccount;
+import com.example.trade.entity.TradeAccountTransaction;
 import com.example.trade.service.TradeAccountService;
+import com.example.trade.service.TradeAccountTransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 交易账户控制器
@@ -17,6 +20,9 @@ public class TradeAccountController {
 
     @Autowired
     private TradeAccountService tradeAccountService;
+    
+    @Autowired
+    private TradeAccountTransactionService transactionService;
 
     /**
      * 获取账户信息
@@ -108,5 +114,14 @@ public class TradeAccountController {
             return Result.error("账户不存在");
         }
         return Result.success(account);
+    }
+
+    /**
+     * 获取交易记录
+     */
+    @GetMapping("/transactions/{userId}")
+    public Result<List<TradeAccountTransaction>> getTransactions(@PathVariable Long userId) {
+        List<TradeAccountTransaction> transactions = transactionService.getByUserId(userId);
+        return Result.success(transactions);
     }
 }

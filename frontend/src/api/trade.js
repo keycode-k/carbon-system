@@ -54,6 +54,16 @@ export function getAccountStatistics(userId) {
 }
 
 /**
+ * 获取账户交易记录
+ */
+export function getAccountTransactions(userId) {
+  return request({
+    url: `/api/trade/account/transactions/${userId}`,
+    method: 'get'
+  })
+}
+
+/**
  * 获取市场交易订单列表（所有OPEN状态的订单）
  */
 export function getMarketOrders(params) {

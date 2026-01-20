@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿-- 创建碳配额表
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿-- 创建碳配额表
 CREATE TABLE IF NOT EXISTS `carbon_quota` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `user_id` BIGINT(20) NOT NULL COMMENT '所属用户ID',

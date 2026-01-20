@@ -127,7 +127,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getAccountInfo, recharge, withdraw } from '@/api/trade'
+import { getAccountInfo, recharge, withdraw, getAccountTransactions } from '@/api/trade'
 import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
@@ -146,20 +146,37 @@ const rechargeLoading = ref(false)
 const withdrawForm = ref({ amount: '' })
 const withdrawLoading = ref(false)
 
-// 交易历史（模拟数据）
-const accountHistory = ref([
-  { type: 'recharge', amount: 20000, balance: 20000, time: '2024-01-15 10:30:00', remark: '初始充值' },
-  { type: 'withdraw', amount: 5000, balance: 15000, time: '2024-01-20 14:20:00', remark: '提现到银行卡' },
-])
+// 交易历史
+const accountHistory = ref([])
 
 // 加载账户信息
 const loadAccountInfo = async () => {
   try {
     const data = await getAccountInfo(userId.value)
     accountInfo.value = data
+    // 同时加载交易记录
+    await loadTransactions()
   } catch (error) {
     console.error('加载账户信息失败:', error)
     ElMessage.error('加载账户信息失败')
+  }
+}
+
+// 加载交易记录
+const loadTransactions = async () => {
+  try {
+    const transactions = await getAccountTransactions(userId.value)
+    // 转换交易记录格式以匹配前端显示
+    accountHistory.value = transactions.map(item => ({
+      type: item.type,
+      amount: item.amount,
+      balance: item.balanceAfter,
+      time: item.createTime,
+      remark: item.remark || ''
+    }))
+  } catch (error) {
+    console.error('加载交易记录失败:', error)
+    ElMessage.error('加载交易记录失败')
   }
 }
 
@@ -175,7 +192,7 @@ const handleRecharge = async () => {
     await recharge(userId.value, rechargeForm.value.amount)
     ElMessage.success('充值成功')
     rechargeForm.value.amount = ''
-    loadAccountInfo()
+    await loadAccountInfo() // 重新加载账户信息和交易记录
   } catch (error) {
     console.error('充值失败:', error)
     ElMessage.error('充值失败')
@@ -201,7 +218,7 @@ const handleWithdraw = async () => {
     await withdraw(userId.value, withdrawForm.value.amount)
     ElMessage.success('提现成功')
     withdrawForm.value.amount = ''
-    loadAccountInfo()
+    await loadAccountInfo() // 重新加载账户信息和交易记录
   } catch (error) {
     console.error('提现失败:', error)
     ElMessage.error('提现失败')
