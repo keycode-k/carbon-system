@@ -1,0 +1,11 @@
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\AssetsApplication.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\common\Result.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\controller\AssetsValidationController.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\controller\CarbonCreditController.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\controller\CarbonQuotaController.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\entity\CarbonCredit.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\entity\CarbonQuota.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\entity\CarbonQuotaDetail.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\mapper\CarbonCreditMapper.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\mapper\CarbonQuotaDetailMapper.java
+C:\Users\杜志鹏\Desktop\carbon-system\service-assets\src\main\java\com\example\assets\mapper\CarbonQuotaMapper.java
